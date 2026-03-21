@@ -1,0 +1,23 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y curl bash ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Rover CLI
+RUN curl -sSL https://rover.apollo.dev/nix/latest | APOLLO_NO_UPDATE_NOTIFIER=1 sh
+ENV PATH="/root/.rover/bin:$PATH"
+
+# Install Apollo Router
+ARG ROUTER_VERSION=1.57.1
+RUN curl -sSL "https://router.apollo.dev/download/nix/v${ROUTER_VERSION}" | \
+    APOLLO_ROUTER_DOWNLOAD_DIR=/usr/local/bin sh
+
+COPY router.yaml /config/router.yaml
+COPY supergraph.yaml /config/supergraph.yaml
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 4000 8088
+
+ENTRYPOINT ["/entrypoint.sh"]

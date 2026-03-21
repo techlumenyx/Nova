@@ -1,0 +1,27 @@
+federation_version: =2.7.0
+
+subgraphs:
+  auth:
+    routing_url: http://auth:4001/graphql
+    schema:
+      subgraph_url: http://auth:4001/graphql
+
+  profile:
+    routing_url: http://profile:4002/graphql
+    schema:
+      subgraph_url: http://profile:4002/graphql
+
+  commerce:
+    routing_url: http://commerce:4003/graphql
+    schema:
+      subgraph_url: http://commerce:4003/graphql
+
+  chat:
+    routing_url: http://chat:4004/graphql
+    schema:
+      subgraph_url: http://chat:4004/graphql
+
+  content:
+    routing_url: http://content:4005/graphql
+    schema:
+      subgraph_url: http://content:4005/graphql

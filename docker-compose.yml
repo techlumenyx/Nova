@@ -1,0 +1,199 @@
+services:
+  # ── Gateway ────────────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+      - "8088:8088"
+    # Requires a pre-built supergraph.graphql — run `make compose-schema` first.
+    # entrypoint.sh will skip rover recomposition and start the router immediately.
+    volumes:
+      - ./gateway/supergraph.graphql:/config/supergraph.graphql:ro
+    depends_on:
+      auth:        { condition: service_healthy }
+      profile:     { condition: service_healthy }
+      commerce:    { condition: service_healthy }
+      chat:        { condition: service_healthy }
+      content:     { condition: service_healthy }
+      coprocessor: { condition: service_healthy }
+    networks: [nova]
+    restart: on-failure
+
+  # ── Subgraphs ──────────────────────────────────────────────────────────────
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 4001
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [nova]
+
+  profile:
+    build:
+      context: .
+      dockerfile: services/profile/Dockerfile
+    ports:
+      - "4002:4002"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 4002
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [nova]
+
+  commerce:
+    build:
+      context: .
+      dockerfile: services/commerce/Dockerfile
+    ports:
+      - "4003:4003"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      PORT: 4003
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [nova]
+
+  chat:
+    build:
+      context: .
+      dockerfile: services/chat/Dockerfile
+    ports:
+      - "4004:4004"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY}
+      PORT: 4004
+    depends_on:
+      postgres:  { condition: service_healthy }
+      redis:     { condition: service_healthy }
+      chromadb:  { condition: service_started }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [nova]
+
+  content:
+    build:
+      context: .
+      dockerfile: services/content/Dockerfile
+    ports:
+      - "4005:4005"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: 4005
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [nova]
+
+  # ── Coprocessor ────────────────────────────────────────────────────────────
+  coprocessor:
+    build:
+      context: .
+      dockerfile: coprocessor/Dockerfile
+    ports:
+      - "4010:4010"
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      PORT: 4010
+    depends_on:
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [nova]
+
+  # ── Infrastructure ─────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nova}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nova_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-nova}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nova}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [nova]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [nova]
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks: [nova]
+
+volumes:
+  postgres_data:
+  chroma_data:
+
+networks:
+  nova:
+    driver: bridge

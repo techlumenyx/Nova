@@ -1,0 +1,50 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["chat"]
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  profileId String    @map("profile_id")
+  module    String
+  status    String    @default("ACTIVE")
+  language  String    @default("EN")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  messages  Message[]
+
+  @@map("conversations")
+  @@schema("chat")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  role           String
+  content        String
+  language       String       @default("EN")
+  metadata       Json         @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+  @@schema("chat")
+}
+
+model WellnessInsight {
+  id              String   @id @default(uuid())
+  profileId       String   @map("profile_id")
+  summary         String
+  insights        Json     @default("[]")
+  recommendations Json     @default("[]")
+  generatedAt     DateTime @default(now()) @map("generated_at")
+
+  @@map("wellness_insights")
+  @@schema("chat")
+}

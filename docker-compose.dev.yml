@@ -1,0 +1,39 @@
+services:
+  gateway:
+    # --dev enables Apollo Sandbox at http://localhost:4000
+    entrypoint: ["/bin/bash", "/entrypoint.sh", "--dev"]
+
+  auth:
+    command: ["npx", "tsx", "watch", "services/auth/src/index.ts"]
+    volumes:
+      - ./services/auth/src:/app/services/auth/src
+      - ./shared/src:/app/shared/src
+
+  profile:
+    command: ["npx", "tsx", "watch", "services/profile/src/index.ts"]
+    volumes:
+      - ./services/profile/src:/app/services/profile/src
+      - ./shared/src:/app/shared/src
+
+  commerce:
+    command: ["npx", "tsx", "watch", "services/commerce/src/index.ts"]
+    volumes:
+      - ./services/commerce/src:/app/services/commerce/src
+      - ./shared/src:/app/shared/src
+
+  chat:
+    command: ["npx", "tsx", "watch", "services/chat/src/index.ts"]
+    volumes:
+      - ./services/chat/src:/app/services/chat/src
+      - ./shared/src:/app/shared/src
+
+  content:
+    command: ["npx", "tsx", "watch", "services/content/src/index.ts"]
+    volumes:
+      - ./services/content/src:/app/services/content/src
+      - ./shared/src:/app/shared/src
+
+  coprocessor:
+    command: ["npx", "tsx", "watch", "coprocessor/src/index.ts"]
+    volumes:
+      - ./coprocessor/src:/app/coprocessor/src

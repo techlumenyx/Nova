@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+
+# Prisma
+**/prisma/migrations/
+
+# Generated types — regenerate with: make codegen
+**/src/generated/
+
+# Apollo Router composed schema
+gateway/supergraph.graphql
+
+# Coverage
+coverage/

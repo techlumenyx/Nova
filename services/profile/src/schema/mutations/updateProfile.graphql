@@ -1,0 +1,12 @@
+type Mutation {
+  updateProfile(input: UpdateProfileInput!): Profile!
+}
+
+input UpdateProfileInput {
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit
+  weightUnit:  WeightUnit
+}

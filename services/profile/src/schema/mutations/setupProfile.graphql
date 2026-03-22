@@ -1,0 +1,12 @@
+type Mutation {
+  setupProfile(input: SetupProfileInput!): Profile!
+}
+
+input SetupProfileInput {
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit
+  weightUnit:  WeightUnit
+}

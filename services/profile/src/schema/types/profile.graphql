@@ -1,0 +1,29 @@
+type Profile @key(fields: "id") {
+  id:          ID!
+  userId:      ID!
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit!
+  weightUnit:  WeightUnit!
+  isComplete:  Boolean!
+  createdAt:   DateTime!
+  updatedAt:   DateTime!
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum HeightUnit {
+  CM
+  FEET
+}
+
+enum WeightUnit {
+  KG
+  LBS
+}

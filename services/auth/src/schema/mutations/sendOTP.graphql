@@ -1,0 +1,8 @@
+type Mutation {
+  sendOTP(target: String!, targetType: OTPTargetType!): OTPResponse!
+}
+
+enum OTPTargetType {
+  PHONE
+  EMAIL
+}

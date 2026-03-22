@@ -1,0 +1,3 @@
+type Mutation {
+  googleAuth(idToken: String!, language: Language): AuthPayload!
+}

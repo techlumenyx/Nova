@@ -1,0 +1,30 @@
+type User @key(fields: "id") {
+  id:            ID!
+  name:          String!
+  email:         String
+  phone:         String
+  emailVerified: Boolean!
+  phoneVerified: Boolean!
+  language:      Language!
+  authProvider:  AuthProvider!
+  status:        UserStatus!
+  createdAt:     DateTime!
+}
+
+enum Language {
+  EN
+  HI
+  HINGLISH
+}
+
+enum AuthProvider {
+  OTP
+  GOOGLE
+  APPLE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}

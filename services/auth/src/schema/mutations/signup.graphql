@@ -1,0 +1,10 @@
+type Mutation {
+  signup(input: SignupInput!): OTPResponse!
+}
+
+input SignupInput {
+  name:       String!
+  target:     String!
+  targetType: OTPTargetType!
+  language:   Language
+}

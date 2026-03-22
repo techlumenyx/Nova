@@ -6,22 +6,72 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["auth"]
+  schemas  = ["nova_auth"]
+}
+
+enum Language {
+  EN
+  HI
+  HINGLISH
+
+  @@schema("nova_auth")
+}
+
+enum AuthProvider {
+  OTP
+  GOOGLE
+  APPLE
+
+  @@schema("nova_auth")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+
+  @@schema("nova_auth")
+}
+
+enum OtpTargetType {
+  PHONE
+  EMAIL
+
+  @@schema("nova_auth")
 }
 
 model User {
   id            String       @id @default(uuid())
-  phone         String       @unique
+  name          String
   email         String?      @unique
+  phone         String?      @unique
+  emailVerified Boolean      @default(false) @map("email_verified")
   phoneVerified Boolean      @default(false) @map("phone_verified")
-  status        String       @default("ACTIVE")
+  language      Language     @default(EN)
+  authProvider  AuthProvider @default(OTP) @map("auth_provider")
+  googleId      String?      @unique @map("google_id")
+  appleId       String?      @unique @map("apple_id")
+  status        UserStatus   @default(ACTIVE)
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @updatedAt @map("updated_at")
   sessions      Session[]
-  otpRequests   OtpRequest[]
 
   @@map("users")
-  @@schema("auth")
+  @@schema("nova_auth")
+}
+
+model OtpRequest {
+  id         String        @id @default(uuid())
+  target     String
+  targetType OtpTargetType @map("target_type")
+  otpHash    String        @map("otp_hash")
+  expiresAt  DateTime      @map("expires_at")
+  used       Boolean       @default(false)
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  @@index([target, targetType])
+  @@map("otp_requests")
+  @@schema("nova_auth")
 }
 
 model Session {
@@ -32,18 +82,7 @@ model Session {
   createdAt    DateTime @default(now()) @map("created_at")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
-  @@schema("auth")
-}
-
-model OtpRequest {
-  id        String   @id @default(uuid())
-  phone     String
-  otpHash   String   @map("otp_hash")
-  expiresAt DateTime @map("expires_at")
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("otp_requests")
-  @@schema("auth")
+  @@schema("nova_auth")
 }

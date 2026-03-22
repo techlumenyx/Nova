@@ -1,0 +1,4 @@
+type Mutation {
+  requestAddContact(target: String!, targetType: OTPTargetType!): OTPResponse!
+  verifyAddContact(target: String!, targetType: OTPTargetType!, otp: String!): Boolean!
+}

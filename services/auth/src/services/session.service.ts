@@ -1,9 +1,9 @@
-import { getPrismaClient, signAccessToken, signRefreshToken, verifyToken, AuthenticationError } from '@nova/shared';
+import { signAccessToken, signRefreshToken, verifyToken, AuthenticationError } from '@nova/shared';
+import { Session } from '../models/session.model';
+import { User } from '../models/user.model';
 
-const prisma = getPrismaClient();
-
-const ACCESS_TOKEN_TTL  = 900;    // 15 min
-const REFRESH_TOKEN_TTL = 604800; // 7 days
+const ACCESS_TOKEN_TTL  = 900;
+const REFRESH_TOKEN_TTL = 604800;
 
 export const sessionService = {
   async create(userId: string, tier: string = 'FREE') {
@@ -11,12 +11,9 @@ export const sessionService = {
 
     const accessToken  = signAccessToken({ userId, tier }, secret, ACCESS_TOKEN_TTL);
     const refreshToken = signRefreshToken(userId, secret, REFRESH_TOKEN_TTL);
+    const expiresAt    = new Date(Date.now() + REFRESH_TOKEN_TTL * 1000);
 
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL * 1000);
-
-    await prisma.session.create({
-      data: { userId, refreshToken, expiresAt },
-    });
+    await Session.create({ userId, refreshToken, expiresAt });
 
     return { accessToken, refreshToken, expiresIn: ACCESS_TOKEN_TTL };
   },
@@ -31,16 +28,12 @@ export const sessionService = {
       throw new AuthenticationError('Invalid or expired refresh token');
     }
 
-    const session = await prisma.session.findUnique({ where: { refreshToken } });
+    const session = await Session.findOne({ refreshToken });
     if (!session || session.expiresAt < new Date()) {
       throw new AuthenticationError('Session expired. Please log in again.');
     }
 
-    const user = await prisma.user.findUnique({
-      where:  { id: payload.userId },
-      select: { id: true, status: true },
-    });
-
+    const user = await User.findById(payload.userId).select('status');
     if (!user || user.status !== 'ACTIVE') {
       throw new AuthenticationError('Account is not active');
     }
@@ -55,6 +48,6 @@ export const sessionService = {
   },
 
   async revoke(userId: string): Promise<void> {
-    await prisma.session.deleteMany({ where: { userId } });
+    await Session.deleteMany({ userId });
   },
 };

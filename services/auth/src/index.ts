@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';
@@ -5,17 +6,18 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { resolvers } from './resolvers';
-import { typeDefs }  from './schema';
+import { typeDefs } from './schema';
 import { buildContext } from './context';
-import { logger } from '@nova/shared';
+import { logger, connectDB } from '@nova/shared';
 
 const PORT = process.env.PORT || 4001;
 
-const server = new ApolloServer({
-  schema: buildSubgraphSchema({ typeDefs, resolvers }),
-});
+const schema = buildSubgraphSchema({ typeDefs, resolvers: resolvers as any });
+
+const server = new ApolloServer({ schema });
 
 async function start() {
+  await connectDB();
   await server.start();
 
   const app = express();
@@ -28,7 +30,9 @@ async function start() {
 
   app.use(
     '/graphql',
-    expressMiddleware(server, { context: buildContext }),
+    expressMiddleware(server, {
+      context: async ({ req }: { req: any }) => buildContext({ req }),
+    }),
   );
 
   app.listen(PORT, () => {
@@ -37,6 +41,6 @@ async function start() {
 }
 
 start().catch((err) => {
-  logger.error('Failed to start auth service', { error: err });
+  console.error('Failed to start auth service:', err);
   process.exit(1);
 });

@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["npm install", "cd services/auth && npm run build"]
+
+[start]
+cmd = "node services/auth/dist/index.js"

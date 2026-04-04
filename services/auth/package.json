@@ -7,16 +7,13 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "codegen": "graphql-codegen --config codegen.yml",
-    "migrate": "prisma migrate deploy",
-    "migrate:dev": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "codegen": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
     "@apollo/subgraph": "^2.9.0",
     "@nova/shared": "*",
-    "@prisma/client": "^6.0.0",
+    "mongoose": "^8.0.0",
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
@@ -36,7 +33,6 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "@types/bcryptjs": "^2.4.6",
-    "prisma": "^6.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }

@@ -1,15 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import mongoose from 'mongoose';
+import { logger } from '../logger';
 
-let client: PrismaClient | null = null;
+let connected = false;
 
-export function getPrismaClient(): PrismaClient {
-  if (!client) {
-    client = new PrismaClient({
-      log:
-        process.env.NODE_ENV === 'development'
-          ? ['query', 'error', 'warn']
-          : ['error'],
-    });
-  }
-  return client;
+export async function connectDB(): Promise<void> {
+  if (connected) return;
+
+  const url = process.env.MONGODB_URL;
+  if (!url) throw new Error('MONGODB_URL is required');
+
+  await mongoose.connect(url);
+  connected = true;
+  logger.info('Connected to MongoDB');
 }

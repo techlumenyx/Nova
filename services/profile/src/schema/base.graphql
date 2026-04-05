@@ -4,6 +4,4 @@ extend schema
 scalar DateTime
 scalar Date
 
-type Query {
-  _placeholder: Boolean
-}
+

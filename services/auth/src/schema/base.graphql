@@ -2,7 +2,3 @@ extend schema
   @link(url: "https://specs.apollo.dev/federation/v2.7", import: ["@key"])
 
 scalar DateTime
-
-type Query {
-  _placeholder: Boolean
-}

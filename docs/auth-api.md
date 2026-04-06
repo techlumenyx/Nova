@@ -77,8 +77,8 @@ import 'token_storage.dart';
 const _baseUrl = 'https://your-railway-url.up.railway.app/graphql';
 
 const _refreshTokenMutation = '''
-  mutation RefreshToken(\$refreshToken: String!) {
-    refreshToken(refreshToken: \$refreshToken) {
+  mutation RefreshToken(\$token: String!) {
+    refreshToken(token: \$token) {
       accessToken
       refreshToken
     }
@@ -98,7 +98,7 @@ Future<String?> _refreshAccessToken() async {
 
   final result = await client.mutate(MutationOptions(
     document: gql(_refreshTokenMutation),
-    variables: {'refreshToken': refreshToken},
+    variables: {'token': refreshToken},
   ));
 
   if (result.hasException || result.data == null) return null;
@@ -403,8 +403,8 @@ final idToken = auth.idToken; // pass this to googleAuth mutation
 
 Access tokens expire in **15 minutes**. Call this silently when a request returns `401`:
 ```graphql
-mutation RefreshToken($refreshToken: String!) {
-  refreshToken(refreshToken: $refreshToken) {
+mutation RefreshToken($token: String!) {
+  refreshToken(token: $token) {
     accessToken
     refreshToken
     expiresIn
@@ -473,6 +473,31 @@ mutation VerifyAddContact($target: String!, $targetType: OTPTargetType!, $otp: S
   verifyAddContact(target: $target, targetType: $targetType, otp: $otp)
 }
 ```
+
+---
+
+## Validation Rules
+
+| Field | Rule |
+|-------|------|
+| `phone` | International format — must start with `+` followed by country code e.g. `+919876543210` |
+| `email` | Standard email format e.g. `user@example.com` |
+| `otp` | Exactly 4 digits |
+| `name` | Required, non-empty string |
+
+Invalid input returns a `VALIDATION_ERROR` with a descriptive message.
+
+---
+
+## Rate Limits
+
+| Mutation | Limit | Window |
+|----------|-------|--------|
+| `signup` | 5 attempts | per hour per IP |
+| `login` | 10 attempts | per 15 minutes per IP |
+| `resendOTP` | 1 resend | per 90 seconds per target |
+
+Exceeding limits returns `RATE_LIMIT_EXCEEDED`. The app should show a friendly message and disable the button until the window resets.
 
 ---
 

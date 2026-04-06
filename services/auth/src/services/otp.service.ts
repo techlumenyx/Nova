@@ -11,17 +11,34 @@ function generateOTP(): string {
 
 export const otpService = {
   async send(target: string, targetType: 'PHONE' | 'EMAIL'): Promise<void> {
-    const otp      = generateOTP();
-    const otpHash  = await bcrypt.hash(otp, 10);
+    const otp       = generateOTP();
+    const otpHash   = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000);
 
     await OtpRequest.create({ target, targetType, otpHash, expiresAt });
 
-    if (targetType === 'PHONE') {
-      await sendSMS(target, otp);
-    } else {
-      await sendEmail(target, otp);
-    }
+    if (targetType === 'PHONE') await sendSMS(target, otp);
+    else await sendEmail(target, otp);
+  },
+
+  // Used by signup — stores name + language so user is created only after OTP verified
+  async sendSignup(
+    target: string,
+    targetType: 'PHONE' | 'EMAIL',
+    name: string,
+    language: string = 'EN',
+  ): Promise<void> {
+    const otp       = generateOTP();
+    const otpHash   = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000);
+
+    await OtpRequest.create({
+      target, targetType, otpHash, expiresAt,
+      signupName: name, signupLanguage: language,
+    });
+
+    if (targetType === 'PHONE') await sendSMS(target, otp);
+    else await sendEmail(target, otp);
   },
 
   async resend(target: string, targetType: 'PHONE' | 'EMAIL'): Promise<void> {
@@ -41,11 +58,15 @@ export const otpService = {
     }
 
     await OtpRequest.updateMany({ target, targetType, used: false }, { used: true });
-
     await otpService.send(target, targetType);
   },
 
-  async verify(target: string, targetType: 'PHONE' | 'EMAIL', otp: string): Promise<void> {
+  // Returns signup metadata if present (name, language) so verifyOTP can create the user
+  async verify(
+    target: string,
+    targetType: 'PHONE' | 'EMAIL',
+    otp: string,
+  ): Promise<{ signupName?: string; signupLanguage?: string }> {
     const record = await OtpRequest.findOne({
       target,
       targetType,
@@ -60,6 +81,11 @@ export const otpService = {
     if (!valid) throw new ValidationError('Invalid OTP');
 
     await OtpRequest.updateOne({ _id: record._id }, { used: true });
+
+    return {
+      signupName:     record.signupName,
+      signupLanguage: record.signupLanguage,
+    };
   },
 };
 

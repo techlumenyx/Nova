@@ -2,7 +2,7 @@ import { sessionService } from '../../services';
 
 export const refreshToken = async (
   _: unknown,
-  { refreshToken: token }: { refreshToken: string },
+  { token }: { token: string },
 ) => {
   return sessionService.refresh(token);
 };

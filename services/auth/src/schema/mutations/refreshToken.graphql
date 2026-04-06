@@ -1,3 +1,3 @@
 type Mutation {
-  refreshToken(refreshToken: String!): AuthPayload!
+  refreshToken(token: String!): AuthPayload!
 }

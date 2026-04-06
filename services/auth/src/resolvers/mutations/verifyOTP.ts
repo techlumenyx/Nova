@@ -1,14 +1,28 @@
 import { otpService, userService, sessionService } from '../../services';
-import { NotFoundError } from '@nova/shared';
+import { ValidationError } from '@nova/shared';
+import { validateTarget, validateOTP } from '../../utils/validate';
 
 export const verifyOTP = async (
   _: unknown,
   { target, targetType, otp }: { target: string; targetType: 'PHONE' | 'EMAIL'; otp: string },
 ) => {
-  await otpService.verify(target, targetType, otp);
+  validateTarget(target, targetType);
+  validateOTP(otp);
 
-  const user = await userService.findByTarget(target, targetType);
-  if (!user) throw new NotFoundError('User');
+  const { signupName, signupLanguage } = await otpService.verify(target, targetType, otp);
+
+  let user = await userService.findByTarget(target, targetType);
+
+  if (!user) {
+    // This is a signup flow — create user now that OTP is verified
+    if (!signupName) throw new ValidationError('Signup session expired. Please sign up again.');
+    user = await userService.create(
+      signupName,
+      target,
+      targetType,
+      (signupLanguage as 'EN' | 'HI' | 'HINGLISH') ?? 'EN',
+    );
+  }
 
   await userService.markVerified(target, targetType);
 

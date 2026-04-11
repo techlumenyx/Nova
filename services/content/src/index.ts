@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';
@@ -7,7 +8,7 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { resolvers } from './resolvers';
 import { typeDefs }  from './schema';
 import { buildContext } from './context';
-import { logger } from '@nova/shared';
+import { logger, connectDB } from '@nova/shared';
 
 const PORT = process.env.PORT || 4005;
 
@@ -16,6 +17,7 @@ const server = new ApolloServer({
 });
 
 async function start() {
+  await connectDB();
   await server.start();
 
   const app = express();

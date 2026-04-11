@@ -1,1 +1,1 @@
-// Export domain services here
+export { labTestService } from './labTest.service';

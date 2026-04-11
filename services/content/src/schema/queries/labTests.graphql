@@ -1,0 +1,6 @@
+type Query {
+  searchLabTests(query: String!, limit: Int): LabSearchResult!
+  labTestSuggestions(query: String!): LabSuggestions!
+  labTest(slug: String!): LabTest
+  labTestsByTag(tag: String!, limit: Int): [LabTest!]!
+}

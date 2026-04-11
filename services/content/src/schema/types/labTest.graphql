@@ -1,0 +1,52 @@
+type LabTest {
+  id:               ID!
+  name:             String!
+  subtitle:         String
+  slug:             String!
+  image:            String
+  shortDescription: String!
+  description:      String!
+  tags:             [String!]!
+  sampleTypes:      [String!]!
+  whenToTest:       [String!]!
+  includedTestNames:[String!]!
+  preparations:     [Preparation!]!
+  sections:         LabTestSections!
+  price:            Float
+}
+
+type Preparation {
+  text: String!
+}
+
+type LabTestSections {
+  ranges:               String
+  resultInterpretation: String
+  riskAssessment:       String
+  whatDetects:          String
+  frequency:            String
+  indications:          String
+  parameters:           String
+  risksLimitations:     String
+}
+
+type LabPackage {
+  id:        ID!
+  name:      String!
+  slug:      String!
+  image:     String
+  tags:      [String!]!
+  testCount: Int!
+  price:     Float
+}
+
+type LabSearchResult {
+  query:    String!
+  tests:    [LabTest!]!
+  packages: [LabPackage!]!
+}
+
+type LabSuggestions {
+  testSuggestions:    [LabTest!]!
+  packageSuggestions: [LabPackage!]!
+}

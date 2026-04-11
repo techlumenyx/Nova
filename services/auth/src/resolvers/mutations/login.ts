@@ -9,8 +9,8 @@ export const login = async (
   { target, targetType }: { target: string; targetType: 'PHONE' | 'EMAIL' },
   ctx: Context,
 ) => {
-  await checkRateLimit('login', ctx.ip);
-  validateTarget(target, targetType);
+  // await checkRateLimit('login', ctx.ip);
+  // validateTarget(target, targetType);
 
   const user = await userService.findByTarget(target, targetType);
   if (!user) throw new NotFoundError('User');

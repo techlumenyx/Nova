@@ -1,0 +1,27 @@
+federation_version: =2.7.0
+
+subgraphs:
+  auth:
+    routing_url: http://auth.railway.internal:4001/graphql
+    schema:
+      file: ./schemas/auth.graphql
+
+  profile:
+    routing_url: http://profile.railway.internal:4002/graphql
+    schema:
+      file: ./schemas/profile.graphql
+
+  commerce:
+    routing_url: http://commerce.railway.internal:4003/graphql
+    schema:
+      file: ./schemas/commerce.graphql
+
+  chat:
+    routing_url: http://chat.railway.internal:4004/graphql
+    schema:
+      file: ./schemas/chat.graphql
+
+  content:
+    routing_url: http://content.railway.internal:4005/graphql
+    schema:
+      file: ./schemas/content.graphql

@@ -1,0 +1,76 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.7", import: ["@key"])
+
+scalar DateTime
+
+type Mutation {
+  requestAddContact(target: String!, targetType: OTPTargetType!): OTPResponse!
+  verifyAddContact(target: String!, targetType: OTPTargetType!, otp: String!): Boolean!
+  googleAuth(idToken: String!, language: Language): AuthPayload!
+  login(target: String!, targetType: OTPTargetType!): OTPResponse!
+  logout: Boolean!
+  refreshToken(token: String!): AuthPayload!
+  resendOTP(target: String!, targetType: OTPTargetType!): OTPResponse!
+  sendOTP(target: String!, targetType: OTPTargetType!): OTPResponse!
+  signup(input: SignupInput!): OTPResponse!
+  verifyOTP(target: String!, targetType: OTPTargetType!, otp: String!): AuthPayload!
+}
+
+enum OTPTargetType {
+  PHONE
+  EMAIL
+}
+
+input SignupInput {
+  name:       String!
+  target:     String!
+  targetType: OTPTargetType!
+  language:   Language
+}
+
+type Query {
+  me: User
+}
+
+type AuthPayload {
+  accessToken:  String!
+  refreshToken: String!
+  expiresIn:    Int!
+  user:         User!
+}
+
+type OTPResponse {
+  success: Boolean!
+  message: String!
+}
+
+type User @key(fields: "id") {
+  id:            ID!
+  name:          String!
+  email:         String
+  phone:         String
+  emailVerified: Boolean!
+  phoneVerified: Boolean!
+  language:      Language!
+  authProvider:  AuthProvider!
+  status:        UserStatus!
+  createdAt:     DateTime!
+}
+
+enum Language {
+  EN
+  HI
+  HINGLISH
+}
+
+enum AuthProvider {
+  OTP
+  GOOGLE
+  APPLE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}

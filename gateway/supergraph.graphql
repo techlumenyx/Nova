@@ -1,0 +1,290 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.4", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__directive(graphs: [join__Graph!], name: String!, args: join__DirectiveArguments) repeatable on SCHEMA | OBJECT | INTERFACE | FIELD_DEFINITION
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean, overrideLabel: String) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+type AuthPayload
+  @join__type(graph: AUTH)
+{
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+  user: User!
+}
+
+enum AuthProvider
+  @join__type(graph: AUTH)
+{
+  OTP @join__enumValue(graph: AUTH)
+  GOOGLE @join__enumValue(graph: AUTH)
+  APPLE @join__enumValue(graph: AUTH)
+}
+
+scalar Date
+  @join__type(graph: PROFILE)
+
+scalar DateTime
+  @join__type(graph: AUTH)
+  @join__type(graph: CHAT)
+  @join__type(graph: COMMERCE)
+  @join__type(graph: CONTENT)
+  @join__type(graph: PROFILE)
+
+enum Gender
+  @join__type(graph: PROFILE)
+{
+  MALE @join__enumValue(graph: PROFILE)
+  FEMALE @join__enumValue(graph: PROFILE)
+  OTHER @join__enumValue(graph: PROFILE)
+}
+
+enum HeightUnit
+  @join__type(graph: PROFILE)
+{
+  CM @join__enumValue(graph: PROFILE)
+  FEET @join__enumValue(graph: PROFILE)
+}
+
+scalar join__DirectiveArguments
+
+scalar join__FieldSet
+
+enum join__Graph {
+  AUTH @join__graph(name: "auth", url: "http://auth.railway.internal:4001/graphql")
+  CHAT @join__graph(name: "chat", url: "http://chat.railway.internal:4004/graphql")
+  COMMERCE @join__graph(name: "commerce", url: "http://commerce.railway.internal:4003/graphql")
+  CONTENT @join__graph(name: "content", url: "http://content.railway.internal:4005/graphql")
+  PROFILE @join__graph(name: "profile", url: "http://profile.railway.internal:4002/graphql")
+}
+
+type LabPackage
+  @join__type(graph: CONTENT)
+{
+  id: ID!
+  name: String!
+  slug: String!
+  image: String
+  tags: [String!]!
+  testCount: Int!
+  price: Float
+}
+
+type LabSearchResult
+  @join__type(graph: CONTENT)
+{
+  query: String!
+  tests: [LabTest!]!
+  packages: [LabPackage!]!
+}
+
+type LabSuggestions
+  @join__type(graph: CONTENT)
+{
+  testSuggestions: [LabTest!]!
+  packageSuggestions: [LabPackage!]!
+}
+
+type LabTest
+  @join__type(graph: CONTENT)
+{
+  id: ID!
+  name: String!
+  subtitle: String
+  slug: String!
+  image: String
+  shortDescription: String!
+  description: String!
+  tags: [String!]!
+  sampleTypes: [String!]!
+  whenToTest: [String!]!
+  includedTestNames: [String!]!
+  preparations: [Preparation!]!
+  sections: LabTestSections!
+  price: Float
+}
+
+type LabTestSections
+  @join__type(graph: CONTENT)
+{
+  ranges: String
+  resultInterpretation: String
+  riskAssessment: String
+  whatDetects: String
+  frequency: String
+  indications: String
+  parameters: String
+  risksLimitations: String
+}
+
+enum Language
+  @join__type(graph: AUTH)
+{
+  EN @join__enumValue(graph: AUTH)
+  HI @join__enumValue(graph: AUTH)
+  HINGLISH @join__enumValue(graph: AUTH)
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Mutation
+  @join__type(graph: AUTH)
+  @join__type(graph: PROFILE)
+{
+  requestAddContact(target: String!, targetType: OTPTargetType!): OTPResponse! @join__field(graph: AUTH)
+  verifyAddContact(target: String!, targetType: OTPTargetType!, otp: String!): Boolean! @join__field(graph: AUTH)
+  googleAuth(idToken: String!, language: Language): AuthPayload! @join__field(graph: AUTH)
+  login(target: String!, targetType: OTPTargetType!): OTPResponse! @join__field(graph: AUTH)
+  logout: Boolean! @join__field(graph: AUTH)
+  refreshToken(token: String!): AuthPayload! @join__field(graph: AUTH)
+  resendOTP(target: String!, targetType: OTPTargetType!): OTPResponse! @join__field(graph: AUTH)
+  sendOTP(target: String!, targetType: OTPTargetType!): OTPResponse! @join__field(graph: AUTH)
+  signup(input: SignupInput!): OTPResponse! @join__field(graph: AUTH)
+  verifyOTP(target: String!, targetType: OTPTargetType!, otp: String!): AuthPayload! @join__field(graph: AUTH)
+  setupProfile(input: SetupProfileInput!): Profile! @join__field(graph: PROFILE)
+  updateProfile(input: UpdateProfileInput!): Profile! @join__field(graph: PROFILE)
+}
+
+type OTPResponse
+  @join__type(graph: AUTH)
+{
+  success: Boolean!
+  message: String!
+}
+
+enum OTPTargetType
+  @join__type(graph: AUTH)
+{
+  PHONE @join__enumValue(graph: AUTH)
+  EMAIL @join__enumValue(graph: AUTH)
+}
+
+type Preparation
+  @join__type(graph: CONTENT)
+{
+  text: String!
+}
+
+type Profile
+  @join__type(graph: PROFILE, key: "id")
+{
+  id: ID!
+  userId: ID!
+  dateOfBirth: Date
+  gender: Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit: HeightUnit!
+  weightUnit: WeightUnit!
+  isComplete: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Query
+  @join__type(graph: AUTH)
+  @join__type(graph: CHAT)
+  @join__type(graph: COMMERCE)
+  @join__type(graph: CONTENT)
+  @join__type(graph: PROFILE)
+{
+  me: User @join__field(graph: AUTH)
+  searchLabTests(query: String!, limit: Int): LabSearchResult! @join__field(graph: CONTENT)
+  labTestSuggestions(query: String!): LabSuggestions! @join__field(graph: CONTENT)
+  labTest(slug: String!): LabTest @join__field(graph: CONTENT)
+  labTestsByTag(tag: String!, limit: Int): [LabTest!]! @join__field(graph: CONTENT)
+  myProfile: Profile @join__field(graph: PROFILE)
+}
+
+input SetupProfileInput
+  @join__type(graph: PROFILE)
+{
+  dateOfBirth: Date
+  gender: Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit: HeightUnit
+  weightUnit: WeightUnit
+}
+
+input SignupInput
+  @join__type(graph: AUTH)
+{
+  name: String!
+  target: String!
+  targetType: OTPTargetType!
+  language: Language
+}
+
+input UpdateProfileInput
+  @join__type(graph: PROFILE)
+{
+  dateOfBirth: Date
+  gender: Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit: HeightUnit
+  weightUnit: WeightUnit
+}
+
+type User
+  @join__type(graph: AUTH, key: "id")
+  @join__type(graph: PROFILE, key: "id")
+{
+  id: ID! @join__field(graph: AUTH) @join__field(graph: PROFILE, external: true)
+  name: String! @join__field(graph: AUTH)
+  email: String @join__field(graph: AUTH)
+  phone: String @join__field(graph: AUTH)
+  emailVerified: Boolean! @join__field(graph: AUTH)
+  phoneVerified: Boolean! @join__field(graph: AUTH)
+  language: Language! @join__field(graph: AUTH)
+  authProvider: AuthProvider! @join__field(graph: AUTH)
+  status: UserStatus! @join__field(graph: AUTH)
+  createdAt: DateTime! @join__field(graph: AUTH)
+  profile: Profile @join__field(graph: PROFILE)
+}
+
+enum UserStatus
+  @join__type(graph: AUTH)
+{
+  ACTIVE @join__enumValue(graph: AUTH)
+  INACTIVE @join__enumValue(graph: AUTH)
+  SUSPENDED @join__enumValue(graph: AUTH)
+}
+
+enum WeightUnit
+  @join__type(graph: PROFILE)
+{
+  KG @join__enumValue(graph: PROFILE)
+  LBS @join__enumValue(graph: PROFILE)
+}

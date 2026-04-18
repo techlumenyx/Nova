@@ -1,0 +1,67 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.7", import: ["@key", "@external"])
+
+scalar DateTime
+scalar Date
+
+type Mutation {
+  setupProfile(input: SetupProfileInput!): Profile!
+  updateProfile(input: UpdateProfileInput!): Profile!
+}
+
+input SetupProfileInput {
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit
+  weightUnit:  WeightUnit
+}
+
+input UpdateProfileInput {
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit
+  weightUnit:  WeightUnit
+}
+
+type Query {
+  myProfile: Profile
+}
+
+type Profile @key(fields: "id") {
+  id:          ID!
+  userId:      ID!
+  dateOfBirth: Date
+  gender:      Gender
+  heightValue: Float
+  weightValue: Float
+  heightUnit:  HeightUnit!
+  weightUnit:  WeightUnit!
+  isComplete:  Boolean!
+  createdAt:   DateTime!
+  updatedAt:   DateTime!
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum HeightUnit {
+  CM
+  FEET
+}
+
+enum WeightUnit {
+  KG
+  LBS
+}
+
+type User @key(fields: "id") {
+  id:      ID! @external
+  profile: Profile
+}

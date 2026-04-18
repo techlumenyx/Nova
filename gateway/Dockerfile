@@ -11,7 +11,10 @@ ENV PATH="/root/.rover/bin:$PATH"
 # Install Apollo Router
 ARG ROUTER_VERSION=1.57.1
 RUN curl -sSL "https://router.apollo.dev/download/nix/v${ROUTER_VERSION}" | \
-    APOLLO_ROUTER_DOWNLOAD_DIR=/usr/local/bin sh
+    APOLLO_ROUTER_DOWNLOAD_DIR=/usr/local/bin sh && \
+    ls -la /usr/local/bin/router && \
+    chmod +x /usr/local/bin/router && \
+    /usr/local/bin/router --version
 
 COPY router.yaml /config/router.yaml
 COPY supergraph.yaml /config/supergraph.yaml

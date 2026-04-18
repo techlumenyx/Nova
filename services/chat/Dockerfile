@@ -10,12 +10,10 @@ RUN npm ci
 
 COPY shared/src ./shared/src
 COPY services/chat/src ./services/chat/src
-COPY services/chat/prisma ./services/chat/prisma
 
-WORKDIR /app/services/chat
-
-RUN npx prisma generate
+RUN cd shared && npm run build
+RUN cd services/chat && npm run build
 
 EXPOSE 4004
 
-CMD ["npx", "tsx", "/app/services/chat/src/index.ts"]
+CMD ["node", "/app/services/chat/dist/index.js"]

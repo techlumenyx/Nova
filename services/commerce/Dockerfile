@@ -10,12 +10,10 @@ RUN npm ci
 
 COPY shared/src ./shared/src
 COPY services/commerce/src ./services/commerce/src
-COPY services/commerce/prisma ./services/commerce/prisma
 
-WORKDIR /app/services/commerce
-
-RUN npx prisma generate
+RUN cd shared && npm run build
+RUN cd services/commerce && npm run build
 
 EXPOSE 4003
 
-CMD ["npx", "tsx", "/app/services/commerce/src/index.ts"]
+CMD ["node", "/app/services/commerce/dist/index.js"]

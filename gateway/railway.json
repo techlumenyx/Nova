@@ -5,7 +5,7 @@
     "dockerfilePath": "gateway/Dockerfile"
   },
   "deploy": {
-    "healthcheckPath": "/health",
+    "healthcheckPath": "/.well-known/apollo/server-health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3

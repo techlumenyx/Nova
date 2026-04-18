@@ -10,12 +10,10 @@ RUN npm ci
 
 COPY shared/src ./shared/src
 COPY services/profile/src ./services/profile/src
-COPY services/profile/prisma ./services/profile/prisma
 
-WORKDIR /app/services/profile
-
-RUN npx prisma generate
+RUN cd shared && npm run build
+RUN cd services/profile && npm run build
 
 EXPOSE 4002
 
-CMD ["npx", "tsx", "/app/services/profile/src/index.ts"]
+CMD ["node", "/app/services/profile/dist/index.js"]

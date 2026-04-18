@@ -10,12 +10,10 @@ RUN npm ci
 
 COPY shared/src ./shared/src
 COPY services/content/src ./services/content/src
-COPY services/content/prisma ./services/content/prisma
 
-WORKDIR /app/services/content
-
-RUN npx prisma generate
+RUN cd shared && npm run build
+RUN cd services/content && npm run build
 
 EXPOSE 4005
 
-CMD ["npx", "tsx", "/app/services/content/src/index.ts"]
+CMD ["node", "/app/services/content/dist/index.js"]

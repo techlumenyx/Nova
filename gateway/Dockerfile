@@ -15,6 +15,7 @@ RUN curl -sSL "https://router.apollo.dev/download/nix/v${ROUTER_VERSION}" | \
 
 COPY router.yaml /config/router.yaml
 COPY supergraph.yaml /config/supergraph.yaml
+COPY supergraph.graphql /config/supergraph.graphql
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

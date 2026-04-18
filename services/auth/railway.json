@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && cd shared && npm run build && cd services/auth && npm run build"
+    "buildCommand": "cd /app && npm install && cd shared && npm run build && cd /app/services/auth && npm run build"
   },
   "deploy": {
-    "startCommand": "node services/auth/dist/index.js",
+    "startCommand": "node /app/services/auth/dist/index.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

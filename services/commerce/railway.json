@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && cd shared && npm run build && cd services/commerce && npm run build"
+    "buildCommand": "cd /app && npm install && cd shared && npm run build && cd /app/services/commerce && npm run build"
   },
   "deploy": {
-    "startCommand": "node services/commerce/dist/index.js",
+    "startCommand": "node /app/services/commerce/dist/index.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

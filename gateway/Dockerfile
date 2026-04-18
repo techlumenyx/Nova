@@ -8,13 +8,13 @@ RUN apt-get update && \
 RUN curl -sSL https://rover.apollo.dev/nix/latest | APOLLO_NO_UPDATE_NOTIFIER=1 sh
 ENV PATH="/root/.rover/bin:$PATH"
 
-# Install Apollo Router
+# Install Apollo Router into /usr/local/bin
 ARG ROUTER_VERSION=1.57.1
-RUN curl -sSL "https://router.apollo.dev/download/nix/v${ROUTER_VERSION}" | \
-    APOLLO_ROUTER_DOWNLOAD_DIR=/usr/local/bin sh && \
-    ls -la /usr/local/bin/router && \
+RUN curl -sSL "https://router.apollo.dev/download/nix/v${ROUTER_VERSION}" -o /tmp/router-install.sh && \
+    sh /tmp/router-install.sh && \
+    mv ./router /usr/local/bin/router && \
     chmod +x /usr/local/bin/router && \
-    /usr/local/bin/router --version
+    router --version
 
 COPY router.yaml /config/router.yaml
 COPY supergraph.yaml /config/supergraph.yaml

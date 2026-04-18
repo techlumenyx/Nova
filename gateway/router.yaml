@@ -5,33 +5,12 @@ health_check:
   listen: 0.0.0.0:4000
   enabled: true
 
-# Enable Apollo Sandbox in dev (overridden to false in prod)
 sandbox:
   enabled: true
 
 homepage:
   enabled: false
 
-# JWT validation using JWKS from auth service
-authentication:
-  router:
-    jwt:
-      jwks:
-        - url: http://auth.railway.internal:4001/.well-known/jwks.json
-
-# Coprocessor for tier-aware rate limiting
-coprocessor:
-  url: http://coprocessor.railway.internal:4010
-  router:
-    request:
-      headers: true
-      body: false
-      context: false
-
-# Forward user context headers to all subgraphs.
-# x-user-id and x-user-tier are extracted from the validated JWT.
-# x-profile-id is sent by the client on each request — it is NOT in the JWT,
-# so clients can switch active profiles without re-issuing a token.
 headers:
   all:
     request:
@@ -42,7 +21,6 @@ headers:
       - propagate:
           named: "x-profile-id"
 
-# Query protection
 limits:
   max_depth: 10
   max_aliases: 15

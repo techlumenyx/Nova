@@ -18,6 +18,6 @@ COPY supergraph.yaml /config/supergraph.yaml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 4000 8088
+EXPOSE 4000
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -17,11 +17,11 @@ authentication:
   router:
     jwt:
       jwks:
-        - url: http://auth:4001/.well-known/jwks.json
+        - url: http://auth.railway.internal:4001/.well-known/jwks.json
 
 # Coprocessor for tier-aware rate limiting
 coprocessor:
-  url: http://coprocessor:4010
+  url: http://coprocessor.railway.internal:4010
   router:
     request:
       headers: true

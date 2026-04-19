@@ -39,7 +39,7 @@ async function start() {
     expressMiddleware(server, { context: async ({ req }: { req: any }) => buildContext({ req }) }),
   );
 
-  app.listen(PORT, '::', () => {
+  app.listen(Number(PORT), '::', () => {
     logger.info(`Profile service running on port ${PORT}`);
   });
 }

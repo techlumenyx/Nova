@@ -2,7 +2,6 @@ supergraph:
   listen: 0.0.0.0:4000
 
 health_check:
-  listen: 0.0.0.0:8088
   enabled: true
 
 sandbox:

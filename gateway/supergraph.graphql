@@ -69,11 +69,11 @@ scalar join__DirectiveArguments
 scalar join__FieldSet
 
 enum join__Graph {
-  AUTH @join__graph(name: "auth", url: "http://auth.railway.internal:4001/graphql")
-  CHAT @join__graph(name: "chat", url: "http://chat.railway.internal:4004/graphql")
+  AUTH @join__graph(name: "auth", url: "http://novaauth.railway.internal:4001/graphql")
+  CHAT @join__graph(name: "chat", url: "http://novachat.railway.internal:4004/graphql")
   COMMERCE @join__graph(name: "commerce", url: "http://commerce.railway.internal:4003/graphql")
-  CONTENT @join__graph(name: "content", url: "http://content.railway.internal:4005/graphql")
-  PROFILE @join__graph(name: "profile", url: "http://profile.railway.internal:4002/graphql")
+  CONTENT @join__graph(name: "content", url: "http://novacontent.railway.internal:4005/graphql")
+  PROFILE @join__graph(name: "profile", url: "http://novaprofile.railway.internal:4002/graphql")
 }
 
 type LabPackage

@@ -1,7 +1,10 @@
 import { createClient } from 'redis';
 import { RateLimitError } from '@nova/shared';
 
-const redis = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+const redis = createClient({ 
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+  disableOfflineQueue: true 
+});
 redis.connect().catch(() => {}); // non-fatal if Redis is unavailable
 
 // Max attempts per window per IP

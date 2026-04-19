@@ -11,7 +11,10 @@ const QUERY_LIMITS: Record<string, number> = {
   GOLD:   1000,
 };
 
-const redis = createClient({ url: process.env.REDIS_URL || 'redis://redis:6379' });
+const redis = createClient({ 
+  url: process.env.REDIS_URL || 'redis://redis:6379',
+  disableOfflineQueue: true
+});
 
 redis.on('error', (err) => logger.error('Redis error', { error: err }));
 

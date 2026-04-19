@@ -2,12 +2,11 @@ import * as admin from 'firebase-admin';
 import { NotFoundError, ValidationError, logger } from '@nova/shared';
 import { User } from '../models/user.model';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(
-      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON!),
-    ),
-  });
+function getFirebaseApp() {
+  if (admin.apps.length) return admin.app();
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!json) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not set');
+  return admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
 }
 
 export const userService = {
@@ -74,7 +73,7 @@ export const userService = {
   async googleAuth(idToken: string, language: 'EN' | 'HI' | 'HINGLISH' = 'EN') {
     let decoded: admin.auth.DecodedIdToken;
     try {
-      decoded = await admin.auth().verifyIdToken(idToken);
+      decoded = await getFirebaseApp().auth().verifyIdToken(idToken);
     } catch {
       throw new ValidationError('Invalid Firebase token');
     }

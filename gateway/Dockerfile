@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
-    apt-get install -y curl bash ca-certificates && \
+    apt-get install -y curl bash ca-certificates nginx && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rover CLI

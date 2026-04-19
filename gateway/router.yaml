@@ -1,6 +1,5 @@
 supergraph:
-  listen: 0.0.0.0:4000
-  introspection: true
+  listen: 0.0.0.0:3000
 
 health_check:
   listen: 0.0.0.0:8088
@@ -8,6 +7,8 @@ health_check:
 
 sandbox:
   enabled: true
+
+introspection: true
 
 homepage:
   enabled: false
@@ -21,8 +22,6 @@ headers:
           named: "x-user-tier"
       - propagate:
           named: "x-profile-id"
-
-
 
 cors:
   allow_any_origin: true

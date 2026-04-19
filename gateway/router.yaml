@@ -8,6 +8,8 @@ health_check:
 sandbox:
   enabled: true
 
+introspection: true
+
 homepage:
   enabled: false
 

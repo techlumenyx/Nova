@@ -3,6 +3,15 @@ import { LabPackage } from '../models/labPackage.model';
 
 const SUGGESTION_LIMIT = 3;
 
+function withId(doc: any) {
+  if (!doc) return doc;
+  return { ...doc, id: doc._id?.toString() };
+}
+
+function withIds(docs: any[]) {
+  return docs.map(withId);
+}
+
 export const labTestService = {
   async search(query: string, limit = 10) {
     const regex = new RegExp(query, 'i');
@@ -16,7 +25,7 @@ export const labTestService = {
         .lean(),
     ]);
 
-    return { query, tests, packages };
+    return { query, tests: withIds(tests), packages: withIds(packages) };
   },
 
   async suggestions(query: string) {
@@ -31,16 +40,14 @@ export const labTestService = {
         .lean(),
     ]);
 
-    return { testSuggestions, packageSuggestions };
+    return { testSuggestions: withIds(testSuggestions), packageSuggestions: withIds(packageSuggestions) };
   },
 
   async getBySlug(slug: string) {
-    return LabTest.findOne({ slug }).lean();
+    return withId(await LabTest.findOne({ slug }).lean());
   },
 
   async getByTag(tag: string, limit = 10) {
-    return LabTest.find({ tags: new RegExp(`^${tag}$`, 'i') })
-      .limit(limit)
-      .lean();
+    return withIds(await LabTest.find({ tags: new RegExp(`^${tag}$`, 'i') }).limit(limit).lean());
   },
 };

@@ -12,6 +12,11 @@ dist/
 
 # Apollo Router composed schema
 gateway/supergraph.graphql
+gateway/supergraph-dev.graphql
+
+# Apollo Router binary (downloaded locally)
+router
+router.exe
 
 # Coverage
 coverage/

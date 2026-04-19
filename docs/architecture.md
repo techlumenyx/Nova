@@ -472,7 +472,77 @@ Every LLM response must pass through guardrails before being returned:
 
 ---
 
-## 11. Local Dev Reference
+## 11. Railway Deployment
+
+### Service setup
+
+| Service | Root Directory | Builder | Fixed PORT |
+|---------|---------------|---------|-----------|
+| novaauth | `services/auth` | Nixpacks | 4001 |
+| novaprofile | `services/profile` | Nixpacks | 4002 |
+| novachat | `services/chat` | Nixpacks | 4004 |
+| novacontent | `services/content` | Nixpacks | 4005 |
+| gateway | `gateway` | Dockerfile | dynamic (Railway assigns) |
+
+- **Private Networking** must be enabled at the project level (Settings → Private Networking)
+- All services must be in the **same Railway project**
+- Each subgraph service needs `PORT` set explicitly in Railway Variables (see table above)
+- The gateway `PORT` is assigned dynamically by Railway — do not set it manually
+
+### Private hostnames
+
+Railway assigns each service a private hostname based on its service name. These are baked into `supergraph.graphql` as the `routing_url` for each subgraph:
+
+```
+novaauth.railway.internal:4001
+novaprofile.railway.internal:4002
+novachat.railway.internal:4004
+novacontent.railway.internal:4005
+```
+
+These are only reachable from within the same Railway project — not from the public internet.
+
+### Gateway internals (nginx + Apollo Router)
+
+Apollo Router's health check runs on a separate port (8088) from the GraphQL endpoint. Since Railway can only probe the public port, **nginx sits in front** as a thin reverse proxy:
+
+```
+Railway public domain ($PORT)
+    │
+    nginx
+    ├── /.well-known/apollo/server-health → router :8088
+    └── /* → router :3000 (GraphQL)
+```
+
+### Why services listen on `'::'`
+
+Railway's private network resolves `.railway.internal` hostnames to **IPv6 addresses**. Node's default `app.listen(port)` binds to `0.0.0.0` (IPv4 only) — requests arrive on IPv6 but the service isn't listening there → connection refused → timeout.
+
+All subgraph services bind with:
+```typescript
+app.listen(Number(PORT), '::', () => { ... })
+```
+
+This covers both IPv4 and IPv6.
+
+### Updating the supergraph after schema changes
+
+```bash
+# 1. Merge per-service .graphql files into single files
+node gateway/merge-schemas.js
+
+# 2. Recompose with Railway routing URLs baked in
+rover supergraph compose --config gateway/supergraph-local.yaml --output gateway/supergraph.graphql
+
+# 3. Commit and push — gateway redeploys automatically
+git add gateway/supergraph.graphql
+git commit -m "chore(gateway): recompose supergraph"
+git push
+```
+
+---
+
+## 12. Local Dev Reference
 
 ### First-time setup
 

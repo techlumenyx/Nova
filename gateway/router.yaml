@@ -3,6 +3,7 @@ supergraph:
 
 health_check:
   enabled: true
+  path: /.well-known/apollo/server-health
 
 sandbox:
   enabled: true

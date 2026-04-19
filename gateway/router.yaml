@@ -12,6 +12,9 @@ sandbox:
 homepage:
   enabled: false
 
+include_subgraph_errors:
+  all: true
+
 headers:
   all:
     request:

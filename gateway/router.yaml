@@ -25,8 +25,7 @@ headers:
 
 
 cors:
-  origins:
-    - "*"
+  allow_any_origin: true
   allow_headers:
     - content-type
     - authorization

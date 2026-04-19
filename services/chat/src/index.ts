@@ -55,7 +55,7 @@ async function start() {
     expressMiddleware(server, { context: async ({ req }: { req: any }) => buildContext({ req }) }),
   );
 
-  httpServer.listen(PORT, () => {
+  httpServer.listen(Number(PORT), '::', () => {
     logger.info(`Chat service running on port ${PORT}`);
     logger.info(`WebSocket subscriptions ready at ws://localhost:${PORT}/graphql`);
   });

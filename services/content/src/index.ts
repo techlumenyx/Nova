@@ -33,7 +33,7 @@ async function start() {
     expressMiddleware(server, { context: async ({ req }: { req: any }) => buildContext({ req }) }),
   );
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '::', () => {
     logger.info(`Content service running on port ${PORT}`);
   });
 }

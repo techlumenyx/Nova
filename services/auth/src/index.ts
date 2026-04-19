@@ -35,7 +35,7 @@ async function start() {
     }),
   );
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '::', () => {
     logger.info(`Auth service running on port ${PORT}`);
   });
 }

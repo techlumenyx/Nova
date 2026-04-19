@@ -19,6 +19,8 @@ headers:
   all:
     request:
       - propagate:
+          named: "authorization"
+      - propagate:
           named: "x-user-id"
       - propagate:
           named: "x-user-tier"

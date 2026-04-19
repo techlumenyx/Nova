@@ -2,11 +2,10 @@
 set -e
 
 echo "[gateway] Starting entrypoint..."
-echo "[gateway] PATH=$PATH"
-echo "[gateway] Checking router binary..."
-which router && router --version || echo "[gateway] ERROR: router not found"
+echo "[gateway] PORT=${PORT:-4000}"
 
-echo "[gateway] Checking supergraph.graphql..."
+LISTEN_PORT=${PORT:-4000}
+
 if [ ! -f /config/supergraph.graphql ]; then
   echo "[gateway] supergraph.graphql not found — composing from subgraphs..."
   rover supergraph compose \
@@ -15,15 +14,12 @@ if [ ! -f /config/supergraph.graphql ]; then
   echo "[gateway] Supergraph composed."
 else
   echo "[gateway] Using pre-built supergraph.graphql — skipping composition."
-  ls -la /config/
 fi
 
-echo "[gateway] Validating router.yaml..."
-cat /config/router.yaml
-
-echo "[gateway] Starting Apollo Router..."
+echo "[gateway] Starting Apollo Router on port ${LISTEN_PORT}..."
 exec router \
   --config /config/router.yaml \
   --supergraph /config/supergraph.graphql \
+  --listen "0.0.0.0:${LISTEN_PORT}" \
   --log info \
   "$@"

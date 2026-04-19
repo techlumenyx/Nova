@@ -45,7 +45,6 @@ scalar Date
 scalar DateTime
   @join__type(graph: AUTH)
   @join__type(graph: CHAT)
-  @join__type(graph: COMMERCE)
   @join__type(graph: CONTENT)
   @join__type(graph: PROFILE)
 
@@ -71,7 +70,6 @@ scalar join__FieldSet
 enum join__Graph {
   AUTH @join__graph(name: "auth", url: "http://novaauth.railway.internal:4001/graphql")
   CHAT @join__graph(name: "chat", url: "http://novachat.railway.internal:4004/graphql")
-  COMMERCE @join__graph(name: "commerce", url: "http://commerce.railway.internal:4003/graphql")
   CONTENT @join__graph(name: "content", url: "http://novacontent.railway.internal:4005/graphql")
   PROFILE @join__graph(name: "profile", url: "http://novaprofile.railway.internal:4002/graphql")
 }
@@ -214,7 +212,6 @@ type Profile
 type Query
   @join__type(graph: AUTH)
   @join__type(graph: CHAT)
-  @join__type(graph: COMMERCE)
   @join__type(graph: CONTENT)
   @join__type(graph: PROFILE)
 {

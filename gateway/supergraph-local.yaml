@@ -11,11 +11,6 @@ subgraphs:
     schema:
       file: ./schemas/profile.graphql
 
-  commerce:
-    routing_url: http://commerce.railway.internal:4003/graphql
-    schema:
-      file: ./schemas/commerce.graphql
-
   chat:
     routing_url: http://novachat.railway.internal:4004/graphql
     schema:

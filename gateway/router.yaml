@@ -22,9 +22,7 @@ headers:
       - propagate:
           named: "x-profile-id"
 
-limits:
-  max_depth: 10
-  max_aliases: 15
+
 
 cors:
   origins:

@@ -26,6 +26,8 @@ headers:
           named: "x-user-tier"
       - propagate:
           named: "x-profile-id"
+      - propagate:
+          named: "x-user-profile"
 
 cors:
   allow_any_origin: true

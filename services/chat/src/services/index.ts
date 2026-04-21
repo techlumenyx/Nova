@@ -1,1 +1,1 @@
-// Export domain services here
+export { sessionService } from './session.service';

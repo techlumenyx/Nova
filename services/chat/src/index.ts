@@ -14,7 +14,9 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { resolvers } from './resolvers';
 import { typeDefs }  from './schema';
 import { buildContext } from './context';
-import { logger } from '@nova/shared';
+import { logger, connectDB } from '@nova/shared';
+import { getRedis } from './lib/redis';
+import { startFollowUpCron } from './pipeline/followUpCron';
 
 const PORT = process.env.PORT || 4004;
 
@@ -43,6 +45,10 @@ async function start() {
       },
     ],
   });
+
+  await connectDB();
+  getRedis(); // initialise connection early
+  startFollowUpCron();
 
   await server.start();
 

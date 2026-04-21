@@ -1,0 +1,12 @@
+type Mutation {
+  startSession: StartSessionResult!
+  sendMessage(sessionId: ID!, message: String!): MessageResponse!
+  submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
+}
+
+union StartSessionResult = DiagnosisSession | ProfileIncompleteError
+
+type ProfileIncompleteError {
+  message: String!
+  missingFields: [String!]!
+}

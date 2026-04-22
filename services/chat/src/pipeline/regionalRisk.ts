@@ -28,7 +28,7 @@ const INDIA_WIDE_SEASONAL: Record<string, string[]> = {
 export async function getRegionalRisk(city?: string): Promise<RegionalRisk> {
   const month = new Date().getMonth() + 1;
   const cacheKey = `regional:${(city ?? 'india').toLowerCase()}:${month}`;
-  const redis = getRedis();
+  const redis: any = getRedis();
 
   // Check Redis cache first (Redis may be null if unavailable)
   if (redis) {

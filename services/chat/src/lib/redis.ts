@@ -1,25 +1,11 @@
-import Redis from 'ioredis';
 import { logger } from '@nova/shared';
 
-let client: Redis | null = null;
-let unavailable = false;
+// Redis is optional. If REDIS_URL is not set or connection fails, all cache
+// operations are no-ops. Set REDIS_URL to re-enable.
 
-export function getRedis(): Redis | null {
-  if (unavailable) return null;
-  if (client) return client;
-
-  const url = process.env.REDIS_URL;
-  if (!url) {
-    logger.warn('[Redis] REDIS_URL not set — caching disabled');
-    unavailable = true;
-    return null;
+export function getRedis(): null {
+  if (process.env.REDIS_URL) {
+    logger.info('[Redis] REDIS_URL is set but Redis is currently disabled — remove this stub to re-enable');
   }
-
-  client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1, enableOfflineQueue: false });
-  client.on('error', (err) => {
-    logger.warn('[Redis] unavailable — caching disabled', { code: (err as any).code });
-    unavailable = true;
-    client = null;
-  });
-  return client;
+  return null;
 }

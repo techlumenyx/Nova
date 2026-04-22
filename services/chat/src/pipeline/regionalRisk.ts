@@ -30,15 +30,17 @@ export async function getRegionalRisk(city?: string): Promise<RegionalRisk> {
   const cacheKey = `regional:${(city ?? 'india').toLowerCase()}:${month}`;
   const redis = getRedis();
 
-  // Check Redis cache first
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      logger.info('[RegionalRisk] cache hit', { city, month });
-      return JSON.parse(cached);
+  // Check Redis cache first (Redis may be null if unavailable)
+  if (redis) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        logger.info('[RegionalRisk] cache hit', { city, month });
+        return JSON.parse(cached);
+      }
+    } catch (err) {
+      logger.warn('[RegionalRisk] Redis read failed, continuing without cache', { err });
     }
-  } catch (err) {
-    logger.warn('[RegionalRisk] Redis read failed, continuing without cache', { err });
   }
 
   let result: RegionalRisk;
@@ -55,11 +57,13 @@ export async function getRegionalRisk(city?: string): Promise<RegionalRisk> {
     result = getStaticFallback(city, month);
   }
 
-  // Cache result
-  try {
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', 60 * 60 * 24 * 30); // 30 days
-  } catch (err) {
-    logger.warn('[RegionalRisk] Redis write failed', { err });
+  // Cache result if Redis is available
+  if (redis) {
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', 60 * 60 * 24 * 30); // 30 days
+    } catch (err) {
+      logger.warn('[RegionalRisk] Redis write failed', { err });
+    }
   }
 
   return result;

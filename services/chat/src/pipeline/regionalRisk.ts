@@ -1,22 +1,13 @@
 import { Pinecone } from '@pinecone-database/pinecone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getRedis } from '../lib/redis';
 import { logger } from '@nova/shared';
+import { embed } from '../lib/embed';
 import type { RegionalRisk } from '../models/session.model';
 
 let pinecone: Pinecone | null = null;
 function getPinecone() {
   if (!pinecone) pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
   return pinecone;
-}
-
-let embedModel: ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']> | null = null;
-function getEmbedModel() {
-  if (!embedModel) {
-    const genai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-    embedModel = genai.getGenerativeModel({ model: 'text-embedding-004' });
-  }
-  return embedModel;
 }
 
 const INDIA_WIDE_SEASONAL: Record<string, string[]> = {
@@ -76,8 +67,7 @@ export async function getRegionalRisk(city?: string): Promise<RegionalRisk> {
 
 async function queryPinecone(city: string, month: number): Promise<RegionalRisk> {
   const query = `${city} India month ${month} common diseases endemic seasonal`;
-  const embResult = await getEmbedModel().embedContent(query);
-  const vector = embResult.embedding.values;
+  const vector = await embed(query);
 
   const index = getPinecone().index(process.env.PINECONE_INDEX ?? 'nova-medical');
   const results = await index.namespace('regional-risk').query({

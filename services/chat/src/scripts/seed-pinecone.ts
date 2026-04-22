@@ -3,18 +3,11 @@ import { resolve } from 'path';
 config({ path: resolve(__dirname, '../../../../.env') });
 
 import { Pinecone } from '@pinecone-database/pinecone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { embed } from '../lib/embed';
 import remedies from './data/remedies.json';
 import regionalRisk from './data/regional-risk.json';
 
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-const genai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-const embedModel = genai.getGenerativeModel({ model: 'text-embedding-004' });
-
-async function embed(text: string): Promise<number[]> {
-  const result = await embedModel.embedContent(text);
-  return result.embedding.values;
-}
 
 function sleep(ms: number) {
   return new Promise(res => setTimeout(res, ms));
@@ -82,23 +75,37 @@ async function seedRegionalRisk(index: ReturnType<Pinecone['index']>) {
   }
 }
 
+const EMBED_DIM = 3072; // gemini-embedding-001 output dimension
+
 async function main() {
   const indexName = process.env.PINECONE_INDEX ?? 'nova-medical';
   console.log(`Connecting to Pinecone index: ${indexName}`);
 
-  // Create index if it doesn't exist
   const existingIndexes = await pinecone.listIndexes();
-  const exists = existingIndexes.indexes?.some(i => i.name === indexName);
+  const existingIndex   = existingIndexes.indexes?.find(i => i.name === indexName);
 
-  if (!exists) {
-    console.log('Index not found — creating...');
+  // Delete and recreate if dimension has changed (e.g. from old 768-dim index)
+  if (existingIndex) {
+    const currentDim = existingIndex.dimension ?? 0;
+    if (currentDim !== EMBED_DIM) {
+      console.log(`Index dimension mismatch (${currentDim} vs ${EMBED_DIM}) — deleting and recreating...`);
+      await pinecone.deleteIndex(indexName);
+      await sleep(5000);
+    } else {
+      console.log(`Index exists with correct dimension (${EMBED_DIM}) — seeding into existing index.`);
+    }
+  }
+
+  const needsCreate = !existingIndex || (existingIndex.dimension ?? 0) !== EMBED_DIM;
+  if (needsCreate) {
+    console.log('Creating index...');
     await pinecone.createIndex({
-      name: indexName,
-      dimension: 768,
-      metric: 'cosine',
-      spec: { serverless: { cloud: 'aws', region: 'us-east-1' } },
+      name:      indexName,
+      dimension: EMBED_DIM,
+      metric:    'cosine',
+      spec:      { serverless: { cloud: 'aws', region: 'us-east-1' } },
     });
-    console.log('Waiting for index to be ready...');
+    console.log('Waiting for index to be ready (60 s)...');
     await sleep(60000);
   }
 

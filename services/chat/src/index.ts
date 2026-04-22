@@ -1,6 +1,11 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 config({ path: resolve(__dirname, '../../../.env') });
+
+// Set buffer timeout before any Mongoose model is imported
+import mongoose from 'mongoose';
+mongoose.set('bufferTimeoutMS', 30000);
+
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';
@@ -23,6 +28,12 @@ const PORT = process.env.PORT || 4004;
 const schema = buildSubgraphSchema({ typeDefs, resolvers });
 
 async function start() {
+  // ── Connect to backing services FIRST, before accepting any traffic ───────
+  await connectDB();
+  getRedis(); // initialise connection early
+  startFollowUpCron();
+
+  // ── Build HTTP + Apollo ───────────────────────────────────────────────────
   const app = express();
   const httpServer = http.createServer(app);
 
@@ -45,10 +56,6 @@ async function start() {
       },
     ],
   });
-
-  await connectDB();
-  getRedis(); // initialise connection early
-  startFollowUpCron();
 
   await server.start();
 

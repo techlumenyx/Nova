@@ -7,23 +7,14 @@
  */
 
 import { Pinecone } from '@pinecone-database/pinecone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logger } from '@nova/shared';
+import { embed } from '../lib/embed';
 import type { IDiagnosisSession, RemedyResult } from '../models/session.model';
 
 let pinecone: Pinecone | null = null;
 function getPinecone() {
   if (!pinecone) pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
   return pinecone;
-}
-
-let embedModel: ReturnType<InstanceType<typeof GoogleGenerativeAI>['getGenerativeModel']> | null = null;
-function getEmbedModel() {
-  if (!embedModel) {
-    const genai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-    embedModel = genai.getGenerativeModel({ model: 'text-embedding-004' });
-  }
-  return embedModel;
 }
 
 // ─── Types matching Pinecone metadata fields ─────────────────────────────────
@@ -99,11 +90,6 @@ function buildQuery(sx: IDiagnosisSession['symptomSet']): string {
   const parts = [sx!.chiefComplaint];
   if (sx!.symptoms?.length) parts.push(sx!.symptoms.map(s => s.name).join(', '));
   return parts.join(' — ');
-}
-
-async function embed(text: string): Promise<number[]> {
-  const result = await getEmbedModel().embedContent(text);
-  return result.embedding.values;
 }
 
 function isSafe(meta: RemedyMeta, profile: IDiagnosisSession['userProfile']): boolean {

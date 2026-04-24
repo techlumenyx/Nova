@@ -94,3 +94,8 @@ type MessageResponse {
   status: SessionStatus!
   requiresAction: ActionType
 }
+
+type SendMessageAck {
+  accepted:  Boolean!
+  sessionId: ID!
+}

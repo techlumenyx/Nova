@@ -106,6 +106,30 @@ type MessageResponse {
   requiresAction: ActionType
 }
 
+type SendMessageAck {
+  accepted:  Boolean!
+  sessionId: ID!
+}
+
+# ─── Subscriptions ────────────────────────────────────────────────────────────
+
+enum SessionEventType {
+  MESSAGE
+  STAGE_CHANGE
+  COMPLETED
+  ESCALATED
+}
+
+type SessionEvent {
+  sessionId:      ID!
+  type:           SessionEventType!
+  message:        String
+  stage:          Int!
+  status:         SessionStatus!
+  requiresAction: ActionType!
+  output:         DiagnosisOutput
+}
+
 type ProfileIncompleteError {
   message:       String!
   missingFields: [String!]!
@@ -125,6 +149,12 @@ type Query {
 
 type Mutation {
   startSession:                                                       StartSessionResult!
-  sendMessage(sessionId: ID!, message: String!):                      MessageResponse!
+  sendMessage(sessionId: ID!, message: String!):                      SendMessageAck!
   submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
+}
+
+# ─── Subscription ─────────────────────────────────────────────────────────────
+
+type Subscription {
+  sessionUpdated(sessionId: ID!): SessionEvent!
 }

@@ -14,6 +14,7 @@
 
 import { logger } from '@nova/shared';
 import { sessionService } from '../services/session.service';
+import { publishSessionEvent } from '../lib/pubsub';
 import { runDifferential } from './differential';
 import { mapLabTests } from './labTests';
 import { retrieveRemedies } from './remedyRetrieval';
@@ -100,12 +101,19 @@ export async function runAnalysisPipeline(
     followUpScheduled,
   });
 
-  return {
+  const requiresAction = output.action === 'ER_NOW' ? 'EMERGENCY' : 'NONE';
+
+  publishSessionEvent({
+    sessionId,
+    type: 'COMPLETED',
     message: formatted,
     stage: 10,
     status: 'COMPLETED',
-    requiresAction: output.action === 'ER_NOW' ? 'EMERGENCY' : 'NONE',
-  };
+    requiresAction,
+    output,
+  });
+
+  return { message: formatted, stage: 10, status: 'COMPLETED', requiresAction };
 }
 
 function fallbackOutputMessage(language?: string): string {

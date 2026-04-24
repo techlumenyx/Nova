@@ -16,6 +16,7 @@ import { callLLM } from './llm';
 import { scanRedFlags } from './redFlags';
 import { buildSystemPrompt } from './systemPrompt';
 import { runAnalysisPipeline } from './analysisPipeline';
+import { publishSessionEvent } from '../lib/pubsub';
 import type { IDiagnosisSession, SessionMessage } from '../models/session.model';
 import type { LLMMessage } from './llm';
 
@@ -61,6 +62,7 @@ export async function runConversationLoop(
       }),
     ]);
 
+    publishSessionEvent({ sessionId, type: 'ESCALATED', message: emergencyMsg, stage: 6, status: 'ESCALATED', requiresAction: 'EMERGENCY' });
     return { message: emergencyMsg, stage: 6, status: 'ESCALATED', requiresAction: 'EMERGENCY' };
   }
 
@@ -138,6 +140,7 @@ export async function runConversationLoop(
         timestamp: now(),
       }),
     ]);
+    publishSessionEvent({ sessionId, type: 'ESCALATED', message: assistantText, stage: 6, status: 'ESCALATED', requiresAction: 'EMERGENCY' });
     return { message: assistantText, stage: 6, status: 'ESCALATED', requiresAction: 'EMERGENCY' };
   }
 
@@ -178,8 +181,14 @@ export async function runConversationLoop(
     }),
   ]);
 
-  // ── 9. Chain into analysis pipeline when conversation is done ─────────────
+  // ── 9. Publish MESSAGE event ──────────────────────────────────────────────
+  if (!shouldAdvance) {
+    publishSessionEvent({ sessionId, type: 'MESSAGE', message: assistantText, stage: 5, status: 'IN_PROGRESS', requiresAction: 'NONE' });
+  }
+
+  // ── 10. Chain into analysis pipeline when conversation is done ────────────
   if (shouldAdvance) {
+    publishSessionEvent({ sessionId, type: 'STAGE_CHANGE', message: assistantText, stage: 7, status: 'IN_PROGRESS', requiresAction: 'ANALYSIS_PENDING' });
     // Re-fetch so analysis pipeline sees updated symptomSet + all messages
     const freshSession = await sessionService.getById(sessionId);
     if (freshSession) {

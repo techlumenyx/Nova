@@ -1,4 +1,4 @@
-import { AuthenticationError, ValidationError } from '@nova/shared';
+import { AuthenticationError, ValidationError, logger } from '@nova/shared';
 import type { Context } from '../../context';
 import { sessionService } from '../../services/session.service';
 import { runConversationLoop } from '../../pipeline/conversationLoop';
@@ -24,12 +24,17 @@ export const sendMessage = async (
     throw new ValidationError('Session is not active');
   }
 
-  // Stage 7 means conversation is done but analysis hasn't run yet (edge case: mid-flight).
-  // Re-trigger analysis on any message rather than looping back into questions.
-  if (session.stage === 7 && !session.differentialDiagnosis) {
-    const sessionIdStr = (session._id as unknown as string).toString();
-    return runAnalysisPipeline(session, sessionIdStr);
-  }
+  // Fire pipeline asynchronously — client receives events via subscription
+  setImmediate(() => {
+    const pipeline =
+      session.stage === 7 && !session.differentialDiagnosis
+        ? runAnalysisPipeline(session, sessionId)
+        : runConversationLoop(session, message.trim());
 
-  return runConversationLoop(session, message.trim());
+    pipeline.catch((err: unknown) => {
+      logger.error('[sendMessage] Unhandled pipeline error', { err, sessionId });
+    });
+  });
+
+  return { accepted: true, sessionId };
 };

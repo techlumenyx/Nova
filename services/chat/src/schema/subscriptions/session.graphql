@@ -1,0 +1,20 @@
+type Subscription {
+  sessionUpdated(sessionId: ID!): SessionEvent!
+}
+
+type SessionEvent {
+  sessionId:      ID!
+  type:           SessionEventType!
+  message:        String
+  stage:          Int!
+  status:         SessionStatus!
+  requiresAction: ActionType!
+  output:         DiagnosisOutput
+}
+
+enum SessionEventType {
+  MESSAGE
+  STAGE_CHANGE
+  COMPLETED
+  ESCALATED
+}

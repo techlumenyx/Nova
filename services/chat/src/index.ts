@@ -38,7 +38,20 @@ async function start() {
 
   // WebSocket server for GraphQL subscriptions
   const wsServer = new WebSocketServer({ server: httpServer, path: '/graphql' });
-  const serverCleanup = useServer({ schema }, wsServer);
+  const serverCleanup = useServer({
+    schema,
+    context: async (ctx) => {
+      // Clients pass auth via connectionParams: { 'x-user-id': '...', 'x-user-profile': '...' }
+      const params = (ctx.connectionParams ?? {}) as Record<string, string>;
+      const userId = params['x-user-id'] ?? params['x-userId'] ?? undefined;
+      let profile: import('./context').UserProfile | undefined;
+      const profileRaw = params['x-user-profile'];
+      if (profileRaw) {
+        try { profile = JSON.parse(profileRaw); } catch { /* ignore */ }
+      }
+      return { userId, profile };
+    },
+  }, wsServer);
 
   const server = new ApolloServer({
     schema,

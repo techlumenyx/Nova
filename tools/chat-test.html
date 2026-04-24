@@ -102,6 +102,19 @@
   #session-info .row { display: flex; justify-content: space-between; align-items: center; }
   #session-info .label { color: var(--muted); }
 
+  #ws-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+    margin-right: 5px;
+    transition: background .3s;
+  }
+  #ws-dot.connected    { background: var(--success); }
+  #ws-dot.connecting   { background: var(--warn); animation: pulse .8s infinite; }
+  #ws-dot.disconnected { background: var(--danger); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
   /* ── Buttons ─────────────────────────────────────────────────────────── */
   .btn {
     border: none;
@@ -323,8 +336,12 @@
   <h2>🩺 Nova Test Client</h2>
 
   <div class="field">
-    <label>Server</label>
+    <label>Server (HTTP)</label>
     <input id="server-url" value="http://localhost:4004/graphql">
+  </div>
+  <div class="field">
+    <label>Server (WS)</label>
+    <input id="ws-url" value="ws://localhost:4004/graphql">
   </div>
 
   <hr class="sep">
@@ -398,8 +415,11 @@
     <div class="row"><span class="label">ID</span><span id="si-id" style="font-size:10px;color:#888">—</span></div>
     <div class="row"><span class="label">Stage</span><span id="si-stage">—</span></div>
     <div class="row"><span class="label">Status</span><span id="si-status">—</span></div>
-    <div class="row"><span class="label">Questions</span><span id="si-q">—</span></div>
     <div class="row"><span class="label">Last Action</span><span id="si-action">—</span></div>
+    <div class="row">
+      <span class="label">Subscription</span>
+      <span><span id="ws-dot"></span><span id="ws-label" style="font-size:11px;color:var(--muted)">—</span></span>
+    </div>
   </div>
 </aside>
 
@@ -407,7 +427,7 @@
 <main id="main">
   <div id="topbar">
     <h1>Chat Pipeline Test</h1>
-    <span class="meta">Direct subgraph · no gateway · uses x-user-id &amp; x-user-profile headers</span>
+    <span class="meta">Direct subgraph · subscriptions via graphql-ws</span>
   </div>
 
   <div id="messages">
@@ -429,20 +449,184 @@
 
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
-let sessionId   = null;
+let sessionId     = null;
 let sessionStage  = 0;
 let sessionStatus = '';
-let questionCount = 0;
+let ws            = null;        // raw WebSocket
+let wsSubId       = null;        // graphql-ws subscription id
+let wsReady       = false;       // connection_ack received
 
-// ── GraphQL helper ────────────────────────────────────────────────────────────
+// ── graphql-ws protocol constants ─────────────────────────────────────────────
+const GQL_CONNECTION_INIT = 'connection_init';
+const GQL_CONNECTION_ACK  = 'connection_ack';
+const GQL_SUBSCRIBE       = 'subscribe';
+const GQL_NEXT            = 'next';
+const GQL_ERROR           = 'error';
+const GQL_COMPLETE        = 'complete';
+const GQL_PING            = 'ping';
+const GQL_PONG            = 'pong';
+
+// ── WebSocket helpers ─────────────────────────────────────────────────────────
+function wsSend(msg) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  }
+}
+
+function setWsState(state) {
+  const dot   = document.getElementById('ws-dot');
+  const label = document.getElementById('ws-label');
+  dot.className = state;
+  const labels = { connected: 'Connected', connecting: 'Connecting…', disconnected: 'Disconnected' };
+  label.textContent = labels[state] ?? '—';
+}
+
+function openSubscription(sid) {
+  const wsUrl  = document.getElementById('ws-url').value.trim();
+  const userId = document.getElementById('user-id').value.trim();
+  const profile = buildProfile();
+
+  if (ws) { ws.close(); ws = null; }
+
+  setWsState('connecting');
+  ws = new WebSocket(wsUrl, 'graphql-transport-ws');
+  wsReady = false;
+
+  ws.onopen = () => {
+    // Send connection_init with auth params
+    wsSend({
+      type: GQL_CONNECTION_INIT,
+      payload: {
+        'x-user-id':      userId,
+        'x-user-profile': JSON.stringify(profile),
+      },
+    });
+  };
+
+  ws.onmessage = (event) => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+
+    switch (msg.type) {
+      case GQL_CONNECTION_ACK:
+        wsReady = true;
+        setWsState('connected');
+        subscribeToSession(sid);
+        break;
+
+      case GQL_PING:
+        wsSend({ type: GQL_PONG });
+        break;
+
+      case GQL_NEXT:
+        handleSubscriptionEvent(msg.payload?.data?.sessionUpdated);
+        break;
+
+      case GQL_ERROR:
+        console.error('[WS] Subscription error', msg.payload);
+        addSystemMsg(`⚠️ Subscription error: ${JSON.stringify(msg.payload)}`);
+        showTyping(false);
+        enableInput(true);
+        break;
+
+      case GQL_COMPLETE:
+        setWsState('disconnected');
+        break;
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error('[WS] Error', err);
+    setWsState('disconnected');
+  };
+
+  ws.onclose = () => {
+    setWsState('disconnected');
+    wsReady = false;
+  };
+}
+
+function subscribeToSession(sid) {
+  wsSubId = 'sub-' + Date.now();
+  wsSend({
+    id:   wsSubId,
+    type: GQL_SUBSCRIBE,
+    payload: {
+      query: `
+        subscription SessionUpdated($sessionId: ID!) {
+          sessionUpdated(sessionId: $sessionId) {
+            sessionId type message stage status requiresAction
+            output {
+              severity action actionDetail disclaimer language
+              probableCauses { condition confidence explanation }
+              labTestsRecommended { testName slug reason urgency }
+              homeRemedies { nameEn preparationEn }
+              watchFor
+            }
+          }
+        }
+      `,
+      variables: { sessionId: sid },
+    },
+  });
+}
+
+function closeSubscription() {
+  if (ws && wsSubId) {
+    wsSend({ id: wsSubId, type: GQL_COMPLETE });
+    wsSubId = null;
+  }
+  if (ws) { ws.close(); ws = null; }
+  setWsState('disconnected');
+}
+
+// ── Handle incoming subscription events ──────────────────────────────────────
+function handleSubscriptionEvent(evt) {
+  if (!evt) return;
+
+  sessionStage  = evt.stage;
+  sessionStatus = evt.status;
+  updateSidebar({ action: evt.requiresAction });
+
+  const isEmergency = evt.requiresAction === 'EMERGENCY' || evt.type === 'ESCALATED';
+  const isComplete  = evt.status === 'COMPLETED' || evt.type === 'COMPLETED';
+
+  const msgClass = isEmergency ? 'msg-emergency'
+                 : isComplete  ? 'msg-complete'
+                 : 'msg-ai';
+
+  showTyping(false);
+
+  if (evt.message) {
+    addMessage('ai', evt.message, msgClass);
+  }
+
+  if (isComplete) {
+    addSystemMsg('✅ Session complete · Follow-up scheduled in 48 hours');
+    enableInput(false);
+    closeSubscription();
+  } else if (isEmergency) {
+    addSystemMsg('🚨 Session escalated — emergency guidance given');
+    enableInput(false);
+    closeSubscription();
+  } else if (evt.status === 'ABANDONED') {
+    addSystemMsg('⚠️ Session abandoned due to repeated LLM failures');
+    enableInput(false);
+    closeSubscription();
+  } else {
+    enableInput(true);
+  }
+}
+
+// ── GraphQL HTTP helper ───────────────────────────────────────────────────────
 async function gql(query, variables = {}) {
-  const url = document.getElementById('server-url').value.trim();
+  const url     = document.getElementById('server-url').value.trim();
   const profile = buildProfile();
 
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type':   'application/json',
       'x-user-id':      document.getElementById('user-id').value.trim(),
       'x-user-profile': JSON.stringify(profile),
     },
@@ -514,15 +698,16 @@ async function startSession() {
     sessionId     = result.id;
     sessionStage  = result.stage;
     sessionStatus = result.status;
-    questionCount = result.questionCount ?? 0;
     updateSidebar();
 
+    // Open WebSocket subscription for this session
+    openSubscription(sessionId);
+
     addSystemMsg(`✅ Session started  ·  ID: ${sessionId}`);
-    addSystemMsg(`Background stages (regional risk, drug check, risk fusion) are running…`);
+    addSystemMsg(`Background stages running… Subscription active — responses arrive via WebSocket.`);
 
     enableInput(true);
 
-    // Show quick-start prompts
     addQuickMessages([
       'I have fever and headache',
       'My stomach hurts since morning',
@@ -549,53 +734,30 @@ async function sendMessage() {
   showTyping(true);
 
   try {
-    const data = await gql(`
+    // sendMessage now returns SendMessageAck { accepted, sessionId }
+    // The actual response will arrive via subscription event
+    await gql(`
       mutation SendMessage($sessionId: ID!, $message: String!) {
         sendMessage(sessionId: $sessionId, message: $message) {
-          message stage status requiresAction
+          accepted sessionId
         }
       }
     `, { sessionId, message: text });
 
-    const r = data.sendMessage;
-    sessionStage  = r.stage;
-    sessionStatus = r.status;
-    updateSidebar({ action: r.requiresAction });
-
-    const msgClass = r.requiresAction === 'EMERGENCY'
-      ? 'msg-emergency'
-      : r.status === 'COMPLETED'
-      ? 'msg-complete'
-      : 'msg-ai';
-
-    addMessage('ai', r.message, msgClass);
-
-    if (r.status === 'COMPLETED') {
-      addSystemMsg(`✅ Session complete  ·  Follow-up scheduled in 48 hours`);
-      enableInput(false);
-    } else if (r.status === 'ESCALATED') {
-      addSystemMsg(`🚨 Session escalated — emergency guidance given`);
-      enableInput(false);
-    } else if (r.status === 'ABANDONED') {
-      addSystemMsg(`⚠️ Session abandoned due to repeated LLM failures`);
-      enableInput(false);
-    } else {
-      enableInput(true);
-    }
-
+    // Typing indicator stays on until subscription event arrives
   } catch (err) {
     addSystemMsg(`❌ Error: ${err.message}`);
+    showTyping(false);
     enableInput(true);
   }
-  showTyping(false);
 }
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
 function resetSession() {
+  closeSubscription();
   sessionId     = null;
   sessionStage  = 0;
   sessionStatus = '';
-  questionCount = 0;
   enableInput(false);
   clearMessages();
   updateSidebar();
@@ -657,7 +819,7 @@ function addQuickMessages(options) {
 }
 
 function showTyping(show) {
-  const t = document.getElementById('typing');
+  const t    = document.getElementById('typing');
   const msgs = document.getElementById('messages');
   t.style.display = show ? 'block' : 'none';
   if (show) msgs.appendChild(t);
@@ -731,6 +893,7 @@ function renderMarkdownLite(text) {
 
 // Init
 updateSidebar();
+setWsState('disconnected');
 </script>
 </body>
 </html>

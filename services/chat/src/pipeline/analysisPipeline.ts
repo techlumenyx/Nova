@@ -78,14 +78,11 @@ export async function runAnalysisPipeline(
   }
 
   // ── Persist output + complete session ────────────────────────────────────
-  const followUpScheduled = new Date(Date.now() + 48 * 60 * 60 * 1000); // +48hr
-
   await Promise.all([
     sessionService.update(sessionId, {
       output,
       stage: 10,
       status: 'COMPLETED',
-      followUpScheduled,
     } as any),
     sessionService.addMessage(sessionId, {
       role: 'assistant',
@@ -98,7 +95,6 @@ export async function runAnalysisPipeline(
     sessionId,
     severity,
     action: output.action,
-    followUpScheduled,
   });
 
   const requiresAction = output.action === 'ER_NOW' ? 'EMERGENCY' : 'NONE';

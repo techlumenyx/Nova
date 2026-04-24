@@ -64,12 +64,4 @@ export const sessionService = {
     );
   },
 
-  // For follow-up cron: find sessions due for follow-up
-  async getDueForFollowUp(): Promise<IDiagnosisSession[]> {
-    return DiagnosisSession.find({
-      status: 'COMPLETED',
-      followUpScheduled: { $lte: new Date() },
-      followUpResponse: { $exists: false },
-    });
-  },
 };

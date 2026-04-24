@@ -158,8 +158,6 @@ export interface IDiagnosisSession extends Document {
   llmFailureCount: number;
 
   // Follow-up
-  followUpScheduled?: Date;
-  followUpDue?: boolean;
   followUpResponse?: FollowUpResponse;
 
   createdAt: Date;
@@ -201,8 +199,6 @@ const SessionSchema = new Schema<IDiagnosisSession>(
     escalationReason: { type: String },
     llmFailureCount:  { type: Number, default: 0 },
 
-    followUpScheduled: { type: Date, index: true },
-    followUpDue:       { type: Boolean, default: false },
     followUpResponse:  { type: Schema.Types.Mixed },
   },
   {
@@ -214,8 +210,6 @@ const SessionSchema = new Schema<IDiagnosisSession>(
 // Compound index for active session lookup
 SessionSchema.index({ userId: 1, status: 1 });
 
-// Index for follow-up cron query
-SessionSchema.index({ status: 1, followUpScheduled: 1 });
 
 export const DiagnosisSession = mongoose.model<IDiagnosisSession>(
   'DiagnosisSession',

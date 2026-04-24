@@ -21,7 +21,6 @@ import { typeDefs }  from './schema';
 import { buildContext } from './context';
 import { logger, connectDB } from '@nova/shared';
 
-import { startFollowUpCron } from './pipeline/followUpCron';
 
 const PORT = process.env.PORT || 4004;
 
@@ -30,7 +29,6 @@ const schema = buildSubgraphSchema({ typeDefs, resolvers });
 async function start() {
   // ── Connect to backing services FIRST, before accepting any traffic ───────
   await connectDB();
-  startFollowUpCron();
 
   // ── Build HTTP + Apollo ───────────────────────────────────────────────────
   const app = express();

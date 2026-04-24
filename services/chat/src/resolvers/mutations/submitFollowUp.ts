@@ -45,8 +45,6 @@ export const submitFollowUp = async (
       // Clear stale analysis state — fresh differential will be built
       differentialDiagnosis: null,
       output:                null,
-      followUpScheduled:     null,
-      followUpDue:           false,
 
       // Clear symptom state — new interview collects fresh SOCRATES
       symptomSet: null,

@@ -82,8 +82,6 @@ type DiagnosisSession {
   output: DiagnosisOutput
   questionCount: Int!
   redFlagTriggered: Boolean!
-  followUpScheduled: DateTime
-  followUpDue: Boolean
   createdAt: DateTime!
   updatedAt: DateTime!
 }

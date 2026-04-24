@@ -38,7 +38,6 @@ Stage 7  — ML Differential Scoring (profile-aware)
 Stage 8  — Lab Test Mapping
 Stage 9  — Safety Guardrail (runs on every output)
 Stage 10 — Structured Output + Action
-Stage 11 — Follow-up Scheduling (48hr check-in)
 ```
 
 **Key design principles:**
@@ -655,38 +654,6 @@ Watch for these warning signs:
 ```
 
 ---
-
-### Stage 11 — Follow-up Scheduling
-**Checkpoint:** Follow-up response received OR 72hr window expires
-
-**Trigger mechanism:** When `DiagnosisOutput` is stored, set `session.followUpScheduled` to `now + 48hr`. A cron job in the chat service polls every hour for sessions where:
-```
-status = 'COMPLETED'
-AND followUpScheduled <= now
-AND followUpResponse IS NULL
-```
-
-**Phase 1 — in-app prompt only** (no push notification infrastructure yet):
-- On user's next app open, show follow-up card before any new session starts
-- "Last time you told us about [chiefComplaint]. How are you feeling now?"
-- Options: Better / Same / Worse / I saw a doctor
-
-**Phase 2 — push notification** via FCM (Firebase Cloud Messaging, already in stack):
-- Store FCM token on user profile at login
-- Cron sends push at 48hr mark
-- Deep link opens follow-up screen in app
-
-**Outcomes:**
-| Response | Action |
-|----------|--------|
-| IMPROVED | `session.status = 'COMPLETED'`, no action needed |
-| SAME | Suggest doctor visit if not already done |
-| WORSENED | Re-open session → Stage 5 with previous SymptomSet as context |
-| SAW_DOCTOR | Ask for diagnosis (optional) → store as `doctorDiagnosis` for future training signal |
-
-**If no response in 72hr:** Mark session `COMPLETED` (assume improved or disengaged). Do not harass user.
-
-Store `FollowUpResponse` on `DiagnosisSession`.
 
 ---
 
@@ -1370,19 +1337,15 @@ Legend: `[ ]` not started · `[x]` done · `[~]` in progress
 - [x] `deriveSeverity()`: EMERGENCY / HIGH / MODERATE / LOW based on diff flag + confidence
 - [x] `formatOutputMessage()`: language-aware readable chat message (EN / HI / HINGLISH)
 - [x] `pipeline/analysisPipeline.ts`: orchestrates stages 7–10 in sequence
-- [x] Session: `status → COMPLETED`, `followUpScheduled = now + 48hr`, `output` persisted
+- [x] Session: `status → COMPLETED`, `output` persisted
 - [x] `conversationLoop.ts` chains into `analysisPipeline` automatically at question 7
 - [x] `sendMessage.ts` re-triggers analysis if stage stuck at 7 (edge case guard)
 
 ---
 
-#### Step 16 — Stage 11: Follow-up Cron
-- [x] `pipeline/followUpCron.ts`: `node-cron` hourly job
-- [x] Query: `status=COMPLETED AND followUpScheduled <= now AND followUpResponse absent`
-- [x] Phase 1: sets `followUpDue: true` on session — frontend shows in-app card
-- [x] Auto-close: no response after 72 hr → clears `followUpScheduled`
-- [x] `startFollowUpCron()` called in `index.ts` on server start
-- [ ] `SubmitFollowUp` mutation: already wired in Step 3; WORSENED re-opens session to stage 5
+#### Step 16 — SubmitFollowUp (implemented)
+- [x] `SubmitFollowUp` mutation wired — records outcome, stores `doctorDiagnosis`
+- [x] WORSENED: re-opens session to stage 5, clears stale analysis, seeds re-entry message, injects previous context into system prompt
 
 ---
 

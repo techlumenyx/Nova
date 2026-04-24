@@ -1387,21 +1387,56 @@ Legend: `[ ]` not started · `[x]` done · `[~]` in progress
 ---
 
 #### Step 17 — End-to-end Test
-- [ ] Full flow: `StartSession` → `SendMessage` ×7 → output shown
-- [ ] Red flag path: message triggers escalation → emergency output
+- [x] Full flow tested via `tools/chat-test.html`: `StartSession` → `SendMessage` ×7 → output shown
+- [x] Red flag path: "chest pain" → ESCALATED + emergency message
+- [x] Completed session output verified: differential, lab tests, remedies, severity
 - [ ] Session resume: drop off mid-conversation → reconnect → continue
 - [ ] Follow-up: complete → 48hr → submit outcome → session closed
 - [ ] LLM failure: kill LLM → fallback fires → session survives
 
 ---
 
+### Step 18 — Profile Service (implemented)
+
+- [x] `services/profile/src/models/profile.model.ts` — Mongoose model with chat fields
+- [x] Profile schema extended: `city`, `language`, `conditions`, `medications`, `allergies`, `bmi`
+- [x] `setupProfile` + `updateProfile` mutations accept new fields
+- [x] `myProfile` query wired with full resolver
+- [x] `connectDB()` added to profile service startup
+- [x] `gateway/schemas/profile.graphql` updated to match
+
+---
+
+### Step 19 — Gateway Coprocessor: Profile Injection (implemented)
+
+- [x] `coprocessor/src/index.ts` rewritten — removed Redis dependency
+- [x] Fetches `myProfile` from profile service on every `RouterRequest`
+- [x] 30s in-memory profile cache (reduces profile service load)
+- [x] Injects `x-user-profile` header with computed age, heightCm, weightKg, bmi
+- [x] Rate limiting migrated to in-memory Map (Redis-free)
+- [x] `gateway/router.yaml` — coprocessor block added pointing to `http://localhost:4010`
+- [x] Graceful fallback: profile fetch failure → empty header → chat service uses profile gate
+
+---
+
+### Step 20 — GraphQL Subscriptions (next)
+- [ ] `sessionUpdated(sessionId: ID!): SessionEvent!` subscription added to chat schema
+- [ ] `SessionEvent` type: `type`, `message`, `stage`, `status`, `requiresAction`, `output`
+- [ ] In-process `EventEmitter` pub/sub (no Redis needed for single-process Phase 1)
+- [ ] `sendMessage` refactored: saves user message → returns `{ accepted: true }` instantly → pipeline runs async → emits events
+- [ ] Background stages emit `STAGE_CHANGE` event when complete
+- [ ] Analysis pipeline emits `COMPLETED` event with full `DiagnosisOutput`
+- [ ] Emergency escalation emits `ESCALATED` event
+- [ ] `graphql-ws` subscription handler wired in chat service
+- [ ] `router.yaml` WebSocket subscription forwarding enabled
+
+---
+
 ### Phase 2 — Full Profile + Push
 
-- [ ] Health form fields added to profile service (conditions, medications, allergies, lifestyle)
-- [ ] Stage 3: use profile medications directly (no longer asked as question)
-- [ ] Stage 4: all scoring factors unlocked (conditions, family history, lifestyle)
-- [ ] Remedy safety filter using actual allergy/condition data from profile
-- [ ] FCM push notification for Stage 11 (replace cron in-app card)
+- [ ] Stage 3: use profile medications directly (no longer asked as question) — profile fields now available
+- [ ] Stage 4: remedy safety filter uses actual allergy data from profile
+- [ ] FCM push notification for Stage 11 (replace cron in-app flag)
 - [ ] Session resume UX ("continue where you left off" card)
 - [ ] Live regional data (OpenAQ air quality, IDSP outbreak alerts)
 - [ ] Hinglish response tuning (few-shot examples)

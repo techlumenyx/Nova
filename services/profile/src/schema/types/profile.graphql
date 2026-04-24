@@ -7,9 +7,26 @@ type Profile @key(fields: "id") {
   weightValue: Float
   heightUnit:  HeightUnit!
   weightUnit:  WeightUnit!
+  bmi:         Float
+  city:        String
+  language:    Language
+  conditions:  [String!]!
+  medications: [Medication!]!
+  allergies:   Allergies
   isComplete:  Boolean!
   createdAt:   DateTime!
   updatedAt:   DateTime!
+}
+
+type Medication {
+  name:   String!
+  dosage: String!
+}
+
+type Allergies {
+  drugs:         [String!]!
+  food:          [String!]!
+  environmental: [String!]!
 }
 
 enum Gender {
@@ -26,4 +43,10 @@ enum HeightUnit {
 enum WeightUnit {
   KG
   LBS
+}
+
+enum Language {
+  EN
+  HI
+  HINGLISH
 }

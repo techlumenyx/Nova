@@ -16,6 +16,11 @@ input SetupProfileInput {
   weightValue: Float
   heightUnit:  HeightUnit
   weightUnit:  WeightUnit
+  city:        String
+  language:    Language
+  conditions:  [String!]
+  medications: [MedicationInput!]
+  allergies:   AllergiesInput
 }
 
 input UpdateProfileInput {
@@ -25,6 +30,22 @@ input UpdateProfileInput {
   weightValue: Float
   heightUnit:  HeightUnit
   weightUnit:  WeightUnit
+  city:        String
+  language:    Language
+  conditions:  [String!]
+  medications: [MedicationInput!]
+  allergies:   AllergiesInput
+}
+
+input MedicationInput {
+  name:   String!
+  dosage: String!
+}
+
+input AllergiesInput {
+  drugs:         [String!]
+  food:          [String!]
+  environmental: [String!]
 }
 
 type Query {
@@ -40,9 +61,31 @@ type Profile @key(fields: "id") {
   weightValue: Float
   heightUnit:  HeightUnit!
   weightUnit:  WeightUnit!
+  bmi:         Float
+  city:        String
+  language:    Language
+  conditions:  [String!]!
+  medications: [Medication!]!
+  allergies:   Allergies
   isComplete:  Boolean!
   createdAt:   DateTime!
   updatedAt:   DateTime!
+}
+
+type Medication {
+  name:   String!
+  dosage: String!
+}
+
+type Allergies {
+  drugs:         [String!]!
+  food:          [String!]!
+  environmental: [String!]!
+}
+
+type User @key(fields: "id") {
+  id:      ID! @external
+  profile: Profile
 }
 
 enum Gender {
@@ -61,7 +104,8 @@ enum WeightUnit {
   LBS
 }
 
-type User @key(fields: "id") {
-  id:      ID! @external
-  profile: Profile
+enum Language {
+  EN
+  HI
+  HINGLISH
 }

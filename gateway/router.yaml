@@ -12,6 +12,13 @@ sandbox:
 homepage:
   enabled: false
 
+coprocessor:
+  url: http://localhost:4010
+  router:
+    request:
+      headers: true
+      body: false
+
 include_subgraph_errors:
   all: true
 

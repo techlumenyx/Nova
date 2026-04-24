@@ -1419,16 +1419,17 @@ Legend: `[ ]` not started · `[x]` done · `[~]` in progress
 
 ---
 
-### Step 20 — GraphQL Subscriptions (next)
-- [ ] `sessionUpdated(sessionId: ID!): SessionEvent!` subscription added to chat schema
-- [ ] `SessionEvent` type: `type`, `message`, `stage`, `status`, `requiresAction`, `output`
-- [ ] In-process `EventEmitter` pub/sub (no Redis needed for single-process Phase 1)
-- [ ] `sendMessage` refactored: saves user message → returns `{ accepted: true }` instantly → pipeline runs async → emits events
-- [ ] Background stages emit `STAGE_CHANGE` event when complete
-- [ ] Analysis pipeline emits `COMPLETED` event with full `DiagnosisOutput`
-- [ ] Emergency escalation emits `ESCALATED` event
-- [ ] `graphql-ws` subscription handler wired in chat service
-- [ ] `router.yaml` WebSocket subscription forwarding enabled
+### Step 20 — GraphQL Subscriptions (implemented)
+- [x] `sessionUpdated(sessionId: ID!): SessionEvent!` subscription added to chat schema
+- [x] `SessionEvent` type: `type`, `message`, `stage`, `status`, `requiresAction`, `output`
+- [x] In-process `graphql-subscriptions` PubSub (no Redis needed for single-process Phase 1)
+- [x] `sendMessage` refactored: returns `SendMessageAck { accepted, sessionId }` instantly → pipeline runs async via `setImmediate` → emits events
+- [x] `conversationLoop.ts` emits `MESSAGE`, `STAGE_CHANGE`, `ESCALATED` events
+- [x] Analysis pipeline emits `COMPLETED` event with full `DiagnosisOutput`
+- [x] `withFilter` per-session event routing; WS context injects `userId` + `profile` from `connectionParams`
+- [x] `graphql-ws` subscription handler wired in chat service `index.ts`
+- [x] `router.yaml` — subscription passthrough enabled
+- [x] `tools/chat-test.html` — native `graphql-transport-ws` protocol client, WS status indicator
 
 ---
 

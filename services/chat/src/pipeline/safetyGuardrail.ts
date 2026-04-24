@@ -23,7 +23,7 @@ interface RedactRule {
 const REDACT_RULES: RedactRule[] = [
   // Definitive diagnosis language
   {
-    pattern: /\byou (definitely |certainly |absolutely )?(have|are suffering from|are diagnosed with)\b/gi,
+    pattern: /\byou (definitely |certainly |absolutely )(have|are suffering from|are diagnosed with)\b/gi,
     replacement: 'you may have',
     label: 'definitive_diagnosis',
   },

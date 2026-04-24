@@ -76,6 +76,12 @@ const LAB_MAP: Record<string, LabTestRecommendation[]> = {
     { testName: 'Urine Routine',         slug: 'urine-routine',   reason: 'Detect blood in urine',                   urgency: 'SOON'    },
     { testName: 'Ultrasound KUB',        slug: 'usg-kub',         reason: 'Detect stone size and location',          urgency: 'SOON'    },
   ],
+  'Meningitis': [
+    { testName: 'Complete Blood Count',  slug: 'cbc',             reason: 'Assess infection and WBC elevation',       urgency: 'URGENT'  },
+    { testName: 'CRP',                   slug: 'crp',             reason: 'Inflammation marker',                     urgency: 'URGENT'  },
+    { testName: 'CT Scan Brain',         slug: 'ct-brain',        reason: 'Rule out raised intracranial pressure before LP', urgency: 'URGENT' },
+    { testName: 'Lumbar Puncture (CSF)', slug: 'csf-analysis',    reason: 'Definitive diagnosis of meningitis type',  urgency: 'URGENT'  },
+  ],
   'Chikungunya': [
     { testName: 'Chikungunya IgM ELISA', slug: 'chik-igm',        reason: 'Confirm chikungunya infection',           urgency: 'SOON'    },
     { testName: 'Complete Blood Count',  slug: 'cbc',             reason: 'Rule out dengue co-infection',            urgency: 'ROUTINE' },

@@ -43,6 +43,16 @@ export function buildSystemPrompt(session: IDiagnosisSession): string {
 
   const qCount = session.questionCount;
 
+  // ── Previous session context (worsened re-assessment) ────────────────────
+  const followUp = session.followUpResponse as any;
+  const prevBlock = followUp?.outcome === 'WORSENED'
+    ? `\n## Previous Session (WORSENED follow-up)\n` +
+      `Last complaint: ${followUp.previousChiefComplaint ?? 'unknown'}\n` +
+      `Previous likely condition: ${followUp.previousTopCondition ?? 'unknown'}\n` +
+      `Patient reported condition WORSENED at follow-up.\n` +
+      `This is a re-assessment — ask fresh SOCRATES questions adapted to the change in status.\n`
+    : '';
+
   // ── Determine what still needs to be asked ────────────────────────────────
   const stillNeeded: string[] = [];
   if (!sx?.chiefComplaint)         stillNeeded.push('chief complaint');
@@ -60,7 +70,7 @@ export function buildSystemPrompt(session: IDiagnosisSession): string {
 
   return `You are Nova, a medical triage assistant serving patients in India.
 ${langInstr}
-
+${prevBlock}
 ## Patient
 Age: ${p.age} | Sex: ${p.sex} | City: ${p.city ?? 'Unknown'} | Month: ${currentMonth()}
 Conditions: ${p.conditions?.join(', ') || 'none reported'}

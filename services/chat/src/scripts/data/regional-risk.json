@@ -1,0 +1,112 @@
+[
+  {
+    "id": "region_mumbai_jun_sep",
+    "region": "Mumbai",
+    "state": "Maharashtra",
+    "country": "India",
+    "monthStart": 6,
+    "monthEnd": 9,
+    "endemic": ["Dengue", "Malaria", "Leptospirosis"],
+    "seasonal": ["Gastroenteritis", "Typhoid", "Cholera"],
+    "notes": "Monsoon season — stagnant water increases mosquito-borne disease risk significantly"
+  },
+  {
+    "id": "region_mumbai_oct_may",
+    "region": "Mumbai",
+    "state": "Maharashtra",
+    "country": "India",
+    "monthStart": 10,
+    "monthEnd": 5,
+    "endemic": ["Dengue"],
+    "seasonal": ["Viral fever", "Influenza"],
+    "notes": "Post-monsoon and summer — lower risk period but dengue still present"
+  },
+  {
+    "id": "region_delhi_jun_sep",
+    "region": "Delhi",
+    "state": "Delhi",
+    "country": "India",
+    "monthStart": 6,
+    "monthEnd": 9,
+    "endemic": ["Dengue", "Chikungunya"],
+    "seasonal": ["Typhoid", "Gastroenteritis", "Malaria"],
+    "notes": "Monsoon season in Delhi — high dengue and chikungunya incidence"
+  },
+  {
+    "id": "region_delhi_oct_feb",
+    "region": "Delhi",
+    "state": "Delhi",
+    "country": "India",
+    "monthStart": 10,
+    "monthEnd": 2,
+    "endemic": [],
+    "seasonal": ["Respiratory infections", "Influenza", "Fog-related asthma", "Cold-related illnesses"],
+    "notes": "Winter and smog season — very high AQI, respiratory conditions peak"
+  },
+  {
+    "id": "region_delhi_mar_may",
+    "region": "Delhi",
+    "state": "Delhi",
+    "country": "India",
+    "monthStart": 3,
+    "monthEnd": 5,
+    "endemic": [],
+    "seasonal": ["Heatstroke", "Dehydration", "GI infections"],
+    "notes": "Peak summer — temperatures exceed 45°C, heatstroke risk"
+  },
+  {
+    "id": "region_rajasthan_mar_jun",
+    "region": "Rajasthan",
+    "state": "Rajasthan",
+    "country": "India",
+    "monthStart": 3,
+    "monthEnd": 6,
+    "endemic": ["Malaria"],
+    "seasonal": ["Heatstroke", "Dehydration", "Sand-related eye infections"],
+    "notes": "Desert climate — extreme heat and dust storms, high heatstroke risk"
+  },
+  {
+    "id": "region_northeast_jun_sep",
+    "region": "Northeast India",
+    "state": "Assam",
+    "country": "India",
+    "monthStart": 6,
+    "monthEnd": 9,
+    "endemic": ["Malaria", "Japanese Encephalitis"],
+    "seasonal": ["Typhoid", "Leptospirosis", "Dengue"],
+    "notes": "Heavy monsoon in Northeast — high malaria and JE risk in rural areas"
+  },
+  {
+    "id": "region_india_jan_mar",
+    "region": "India",
+    "state": "All States",
+    "country": "India",
+    "monthStart": 1,
+    "monthEnd": 3,
+    "endemic": [],
+    "seasonal": ["Influenza", "Viral fever", "Cold and cough", "Pneumonia in elderly"],
+    "notes": "National flu season — peaks January to March across India"
+  },
+  {
+    "id": "region_india_mar_may",
+    "region": "India",
+    "state": "All States",
+    "country": "India",
+    "monthStart": 3,
+    "monthEnd": 5,
+    "endemic": [],
+    "seasonal": ["Heatstroke", "GI infections", "Dehydration", "Chickenpox", "Measles"],
+    "notes": "Summer season — GI infections from food spoilage, heatstroke risk nationally"
+  },
+  {
+    "id": "region_chennai_jun_dec",
+    "region": "Chennai",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "monthStart": 6,
+    "monthEnd": 12,
+    "endemic": ["Dengue"],
+    "seasonal": ["Leptospirosis", "Typhoid", "Cholera"],
+    "notes": "Two monsoon seasons (SW June-Sep, NE Oct-Dec) — prolonged disease risk period"
+  }
+]

@@ -12,6 +12,13 @@ sandbox:
 homepage:
   enabled: false
 
+coprocessor:
+  url: http://localhost:4010
+  router:
+    request:
+      headers: true
+      body: false
+
 include_subgraph_errors:
   all: true
 
@@ -26,6 +33,15 @@ headers:
           named: "x-user-tier"
       - propagate:
           named: "x-profile-id"
+      - propagate:
+          named: "x-user-profile"
+
+subscription:
+  enabled: true
+  mode:
+    passthrough:
+      all:
+        path: /graphql
 
 cors:
   allow_any_origin: true

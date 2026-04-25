@@ -1,0 +1,5 @@
+type Query {
+  activeSession: DiagnosisSession
+  session(id: ID!): DiagnosisSession
+  sessionHistory(limit: Int, offset: Int): [DiagnosisSession!]!
+}

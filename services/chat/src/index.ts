@@ -1,6 +1,11 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 config({ path: resolve(__dirname, '../../../.env') });
+
+// Set buffer timeout before any Mongoose model is imported
+import mongoose from 'mongoose';
+mongoose.set('bufferTimeoutMS', 30000);
+
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';
@@ -14,19 +19,37 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { resolvers } from './resolvers';
 import { typeDefs }  from './schema';
 import { buildContext } from './context';
-import { logger } from '@nova/shared';
+import { logger, connectDB } from '@nova/shared';
+
 
 const PORT = process.env.PORT || 4004;
 
 const schema = buildSubgraphSchema({ typeDefs, resolvers });
 
 async function start() {
+  // ── Connect to backing services FIRST, before accepting any traffic ───────
+  await connectDB();
+
+  // ── Build HTTP + Apollo ───────────────────────────────────────────────────
   const app = express();
   const httpServer = http.createServer(app);
 
   // WebSocket server for GraphQL subscriptions
   const wsServer = new WebSocketServer({ server: httpServer, path: '/graphql' });
-  const serverCleanup = useServer({ schema }, wsServer);
+  const serverCleanup = useServer({
+    schema,
+    context: async (ctx) => {
+      // Clients pass auth via connectionParams: { 'x-user-id': '...', 'x-user-profile': '...' }
+      const params = (ctx.connectionParams ?? {}) as Record<string, string>;
+      const userId = params['x-user-id'] ?? params['x-userId'] ?? undefined;
+      let profile: import('./context').UserProfile | undefined;
+      const profileRaw = params['x-user-profile'];
+      if (profileRaw) {
+        try { profile = JSON.parse(profileRaw); } catch { /* ignore */ }
+      }
+      return { userId, profile };
+    },
+  }, wsServer);
 
   const server = new ApolloServer({
     schema,

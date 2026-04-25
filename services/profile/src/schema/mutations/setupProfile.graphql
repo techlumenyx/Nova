@@ -9,4 +9,20 @@ input SetupProfileInput {
   weightValue: Float
   heightUnit:  HeightUnit
   weightUnit:  WeightUnit
+  city:        String
+  language:    Language
+  conditions:  [String!]
+  medications: [MedicationInput!]
+  allergies:   AllergiesInput
+}
+
+input MedicationInput {
+  name:   String!
+  dosage: String!
+}
+
+input AllergiesInput {
+  drugs:         [String!]
+  food:          [String!]
+  environmental: [String!]
 }

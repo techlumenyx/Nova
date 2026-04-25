@@ -2,3 +2,157 @@ extend schema
   @link(url: "https://specs.apollo.dev/federation/v2.7", import: ["@key", "@external", "@shareable"])
 
 scalar DateTime
+
+# ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ESCALATED
+  ABANDONED
+}
+
+enum ActionType {
+  COMPLETE_PROFILE
+  NONE
+  EMERGENCY
+  ANALYSIS_PENDING
+}
+
+enum FollowUpOutcome {
+  IMPROVED
+  SAME
+  WORSENED
+  SAW_DOCTOR
+}
+
+enum Severity {
+  LOW
+  MODERATE
+  HIGH
+  EMERGENCY
+}
+
+enum SessionAction {
+  SELF_CARE
+  MONITOR
+  VISIT_DOCTOR
+  ER_NOW
+}
+
+# ─── Output types ─────────────────────────────────────────────────────────────
+
+type ProbableCause {
+  condition:   String!
+  confidence:  Float!
+  explanation: String!
+}
+
+type RuledOut {
+  condition: String!
+  reason:    String!
+}
+
+type Remedy {
+  nameEn:        String!
+  nameHi:        String!
+  preparationEn: String!
+  preparationHi: String!
+  ingredients:   [String!]!
+  source:        String!
+}
+
+type LabTest {
+  testName: String!
+  slug:     String!
+  reason:   String!
+  urgency:  String!
+}
+
+type DiagnosisOutput {
+  severity:            Severity!
+  probableCauses:      [ProbableCause!]!
+  ruledOut:            [RuledOut!]!
+  action:              SessionAction!
+  actionDetail:        String!
+  homeRemedies:        [Remedy!]!
+  labTestsRecommended: [LabTest!]!
+  watchFor:            [String!]!
+  disclaimer:          String!
+  emergencyNumber:     String
+  language:            String!
+}
+
+# ─── Session ──────────────────────────────────────────────────────────────────
+
+type DiagnosisSession {
+  id:                 ID!
+  userId:             ID!
+  status:             SessionStatus!
+  stage:              Int!
+  output:             DiagnosisOutput
+  questionCount:      Int!
+  redFlagTriggered:   Boolean!
+  createdAt:          DateTime!
+  updatedAt:          DateTime!
+}
+
+type MessageResponse {
+  message:       String!
+  stage:         Int!
+  status:        SessionStatus!
+  requiresAction: ActionType
+}
+
+type SendMessageAck {
+  accepted:  Boolean!
+  sessionId: ID!
+}
+
+# ─── Subscriptions ────────────────────────────────────────────────────────────
+
+enum SessionEventType {
+  MESSAGE
+  STAGE_CHANGE
+  COMPLETED
+  ESCALATED
+}
+
+type SessionEvent {
+  sessionId:      ID!
+  type:           SessionEventType!
+  message:        String
+  stage:          Int!
+  status:         SessionStatus!
+  requiresAction: ActionType!
+  output:         DiagnosisOutput
+}
+
+type ProfileIncompleteError {
+  message:       String!
+  missingFields: [String!]!
+}
+
+union StartSessionResult = DiagnosisSession | ProfileIncompleteError
+
+# ─── Queries ──────────────────────────────────────────────────────────────────
+
+type Query {
+  activeSession:                              DiagnosisSession
+  session(id: ID!):                           DiagnosisSession
+  sessionHistory(limit: Int, offset: Int):    [DiagnosisSession!]!
+}
+
+# ─── Mutations ────────────────────────────────────────────────────────────────
+
+type Mutation {
+  startSession:                                                       StartSessionResult!
+  sendMessage(sessionId: ID!, message: String!):                      SendMessageAck!
+  submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
+}
+
+# ─── Subscription ─────────────────────────────────────────────────────────────
+
+type Subscription {
+  sessionUpdated(sessionId: ID!): SessionEvent!
+}

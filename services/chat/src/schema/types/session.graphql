@@ -1,0 +1,99 @@
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ESCALATED
+  ABANDONED
+}
+
+enum ActionType {
+  COMPLETE_PROFILE
+  NONE
+  EMERGENCY
+  ANALYSIS_PENDING
+}
+
+enum FollowUpOutcome {
+  IMPROVED
+  SAME
+  WORSENED
+  SAW_DOCTOR
+}
+
+enum Severity {
+  LOW
+  MODERATE
+  HIGH
+  EMERGENCY
+}
+
+enum SessionAction {
+  SELF_CARE
+  MONITOR
+  VISIT_DOCTOR
+  ER_NOW
+}
+
+type ProbableCause {
+  condition: String!
+  confidence: Float!
+  explanation: String!
+}
+
+type RuledOut {
+  condition: String!
+  reason: String!
+}
+
+type Remedy {
+  nameEn: String!
+  nameHi: String!
+  preparationEn: String!
+  preparationHi: String!
+  ingredients: [String!]!
+  source: String!
+}
+
+type LabTest {
+  testName: String!
+  slug: String!
+  reason: String!
+  urgency: String!
+}
+
+type DiagnosisOutput {
+  severity: Severity!
+  probableCauses: [ProbableCause!]!
+  ruledOut: [RuledOut!]!
+  action: SessionAction!
+  actionDetail: String!
+  homeRemedies: [Remedy!]!
+  labTestsRecommended: [LabTest!]!
+  watchFor: [String!]!
+  disclaimer: String!
+  emergencyNumber: String
+  language: String!
+}
+
+type DiagnosisSession {
+  id: ID!
+  userId: ID!
+  status: SessionStatus!
+  stage: Int!
+  output: DiagnosisOutput
+  questionCount: Int!
+  redFlagTriggered: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type MessageResponse {
+  message: String!
+  stage: Int!
+  status: SessionStatus!
+  requiresAction: ActionType
+}
+
+type SendMessageAck {
+  accepted:  Boolean!
+  sessionId: ID!
+}

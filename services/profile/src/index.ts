@@ -1,6 +1,10 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 config({ path: resolve(__dirname, '../../../.env') });
+
+import mongoose from 'mongoose';
+mongoose.set('bufferTimeoutMS', 30000);
+
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';
@@ -10,15 +14,16 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { resolvers } from './resolvers';
 import { typeDefs }  from './schema';
 import { buildContext } from './context';
-import { logger } from '@nova/shared';
+import { logger, connectDB } from '@nova/shared';
 
 const PORT = process.env.PORT || 4002;
 
-const server = new ApolloServer({
-  schema: buildSubgraphSchema({ typeDefs, resolvers }),
-});
+const schema = buildSubgraphSchema({ typeDefs, resolvers: resolvers as any });
 
 async function start() {
+  await connectDB();
+
+  const server = new ApolloServer({ schema });
   await server.start();
 
   const app = express();
@@ -29,10 +34,8 @@ async function start() {
     res.json({ status: 'ok', service: 'profile' });
   });
 
-  // REST: SOS event logging (Module 2.11)
   app.post('/emergency/sos', (req, res) => {
     const { profileId, location } = req.body as { profileId?: string; location?: string };
-    // TODO: log SOS event to DB
     logger.warn('SOS triggered', { profileId, location });
     res.json({ received: true });
   });

@@ -9,4 +9,9 @@ input UpdateProfileInput {
   weightValue: Float
   heightUnit:  HeightUnit
   weightUnit:  WeightUnit
+  city:        String
+  language:    Language
+  conditions:  [String!]
+  medications: [MedicationInput!]
+  allergies:   AllergiesInput
 }

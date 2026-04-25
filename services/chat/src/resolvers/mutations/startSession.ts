@@ -49,14 +49,17 @@ export const startSession = async (_: unknown, __: unknown, ctx: Context) => {
   const p = ctx.profile!;
 
   const userProfile: Parameters<typeof sessionService.create>[0]['userProfile'] = {
-    name:     p.name,
-    age:      p.age,
-    sex:      p.sex,
-    heightCm: p.heightCm,
-    weightKg: p.weightKg,
-    bmi:      p.bmi,
-    language: p.language ?? 'EN',
-    city:     p.city,
+    name:       p.name,
+    age:        p.age,
+    sex:        p.sex,
+    heightCm:   p.heightCm,
+    weightKg:   p.weightKg,
+    bmi:        p.bmi,
+    language:   p.language ?? 'EN',
+    city:       p.city,
+    conditions: p.conditions?.length  ? p.conditions  : undefined,
+    medications: p.medications?.length ? p.medications : undefined,
+    allergies:  p.allergies,
   };
 
   const session = await sessionService.create({

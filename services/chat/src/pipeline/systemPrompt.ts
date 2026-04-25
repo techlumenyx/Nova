@@ -53,6 +53,20 @@ export function buildSystemPrompt(session: IDiagnosisSession): string {
       `This is a re-assessment — ask fresh SOCRATES questions adapted to the change in status.\n`
     : '';
 
+  // ── Known profile data — drives skip instructions + question budget ────────
+  const hasMedications = (p.medications?.length ?? 0) > 0;
+  const hasConditions  = (p.conditions?.length  ?? 0) > 0;
+  const hasAllergies   = !!(p.allergies?.drugs?.length || p.allergies?.food?.length || p.allergies?.environmental?.length);
+
+  const skipInstructions: string[] = [];
+  if (hasMedications) skipInstructions.push('medications (already known from profile — do NOT ask)');
+  if (hasConditions)  skipInstructions.push('existing conditions (already known from profile — do NOT ask)');
+  if (hasAllergies)   skipInstructions.push('allergies (already known from profile — do NOT ask)');
+
+  const skipBlock = skipInstructions.length
+    ? `\nAlready known — skip these questions: ${skipInstructions.join('; ')}.`
+    : '';
+
   // ── Determine what still needs to be asked ────────────────────────────────
   const stillNeeded: string[] = [];
   if (!sx?.chiefComplaint)         stillNeeded.push('chief complaint');
@@ -63,6 +77,8 @@ export function buildSystemPrompt(session: IDiagnosisSession): string {
   if (!sx?.socrates.timing)        stillNeeded.push('timing/pattern (constant or intermittent)');
   if (!sx?.functionalImpact.eating && !sx?.functionalImpact.sleeping)
                                    stillNeeded.push('functional impact (eating/sleeping/work affected)');
+  if (!hasMedications && !sx?.medicationTaken)
+                                   stillNeeded.push('medications taken for this symptom');
 
   const nextAsk = stillNeeded.length
     ? `Next missing info: ${stillNeeded.slice(0, 2).join(', ')}.`
@@ -73,8 +89,13 @@ ${langInstr}
 ${prevBlock}
 ## Patient
 Age: ${p.age} | Sex: ${p.sex} | City: ${p.city ?? 'Unknown'} | Month: ${currentMonth()}
-Conditions: ${p.conditions?.join(', ') || 'none reported'}
-Medications: ${p.medications?.map(m => m.name).join(', ') || 'none'}
+Conditions: ${hasConditions  ? p.conditions!.join(', ')                       : 'none reported'}
+Medications: ${hasMedications ? p.medications!.map(m => `${m.name} ${m.dosage}`).join(', ') : 'none'}
+Allergies:   ${hasAllergies   ? [
+    ...(p.allergies!.drugs?.length         ? [`drugs: ${p.allergies!.drugs.join(', ')}`]         : []),
+    ...(p.allergies!.food?.length          ? [`food: ${p.allergies!.food.join(', ')}`]          : []),
+    ...(p.allergies!.environmental?.length ? [`env: ${p.allergies!.environmental.join(', ')}`] : []),
+  ].join('; ')                             : 'none reported'}${skipBlock}
 
 ## Clinical Context (CONFIDENTIAL — do NOT share with patient)
 ${riskBlock}

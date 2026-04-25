@@ -161,7 +161,7 @@ export async function runConversationLoop(
   }
 
   // Move to differential stage when ready
-  const shouldAdvance = analysisReady || newQuestionCount >= 7;
+  const shouldAdvance = analysisReady || newQuestionCount >= 10;
   if (shouldAdvance) {
     updates.stage = 7;
     logger.info('[ConversationLoop] Advancing to Stage 7 (differential)', {

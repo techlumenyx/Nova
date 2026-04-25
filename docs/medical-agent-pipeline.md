@@ -225,7 +225,7 @@ interface DiagnosisSession {
     timestamp: string;
   }[];
 
-  questionCount: number;         // tracks question budget (max 7)
+  questionCount: number;         // tracks question budget (max 10)
   redFlagTriggered: boolean;
   escalationReason?: string;
   llmFailureCount: number;       // consecutive LLM failures — ABANDONED at 3
@@ -419,7 +419,7 @@ This becomes the **invisible prior**. Every question in Stage 5 is biased by it.
 ---
 
 ### Stage 5 — Adaptive Symptom Questioning
-**Checkpoint:** All blocks completed OR question budget exhausted (max 7 questions)
+**Checkpoint:** All blocks completed OR question budget exhausted (max 10 questions)
 
 Agent talks to user. **One question at a time.** Questions are biased by `PriorRiskProfile`.
 
@@ -491,16 +491,16 @@ Asked once, after Block C. Any YES → Stage 6.
 > "Are you able to eat, sleep, and do daily activities normally?"  
 > "Have you taken any medication for this?"
 
-**Question budget breakdown (max 7):**
+**Question budget breakdown (max 10):**
 | Block | Questions |
 |-------|-----------|
 | A — Chief complaint | 1 |
 | B — Duration + pattern | 1–2 |
-| C — SOCRATES (adaptive) | 2–3 |
+| C — SOCRATES (adaptive) | 4–6 |
 | D — Red flag screen | 1 (inline, yes/no) |
-| E — Functional impact | 1 |
+| E — Functional impact | 1–2 |
 
-After 7 questions → conclude with available data. Note lower confidence in output if any block was skipped.
+After 10 questions → conclude with available data. Note lower confidence in output if any block was skipped.
 
 ---
 
@@ -1284,7 +1284,7 @@ Legend: `[ ]` not started · `[x]` done · `[~]` in progress
 - [x] `pipeline/llm.ts`: Gemini 1.5 Flash wrapper, retry ×2, 15 s timeout, exponential backoff, `callLLMJson` helper
 - [x] `pipeline/redFlags.ts`: passive regex scanner — 18 patterns (EN + HI), runs before every LLM call
 - [x] `pipeline/systemPrompt.ts`: language-aware system instruction, serialised risk context + symptom state (~350 tokens)
-- [x] `pipeline/conversationLoop.ts`: full Stage 5 orchestrator — block logic, red flag → ESCALATED, ANALYSIS_READY signal, max 7 questions
+- [x] `pipeline/conversationLoop.ts`: full Stage 5 orchestrator — block logic, red flag → ESCALATED, ANALYSIS_READY signal, max 10 questions
 - [x] Rolling window: last 8 messages (4 exchanges) fed as Gemini history
 - [x] Chief complaint captured from first user message → `symptomSet.chiefComplaint`
 - [x] Incremental session updates: `questionCount`, `symptomSet`, `stage` on each turn

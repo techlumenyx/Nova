@@ -13,7 +13,7 @@ function toGql(p: IProfile) {
     weightValue: p.weightValue ?? null,
     heightUnit:  p.heightUnit,
     weightUnit:  p.weightUnit,
-    bmi:         (p as any).bmi ?? null,
+    bmi:         p.bmi ?? null,
     city:        p.city ?? null,
     language:    p.language ?? null,
     conditions:  p.conditions ?? [],

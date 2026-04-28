@@ -8,6 +8,7 @@ export interface IProfile extends Document {
   weightValue?: number;
   heightUnit:  'CM' | 'FEET';
   weightUnit:  'KG' | 'LBS';
+  bmi?:        number;
   // Chat-required fields
   city?:       string;
   language?:   'EN' | 'HI' | 'HINGLISH';
@@ -28,6 +29,7 @@ const ProfileSchema = new Schema<IProfile>(
     weightValue: { type: Number },
     heightUnit:  { type: String, enum: ['CM', 'FEET'], default: 'CM' },
     weightUnit:  { type: String, enum: ['KG', 'LBS'], default: 'KG' },
+    bmi:         { type: Number },
     city:        { type: String },
     language:    { type: String, enum: ['EN', 'HI', 'HINGLISH'], default: 'EN' },
     conditions:  [{ type: String }],

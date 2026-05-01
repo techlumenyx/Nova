@@ -1,5 +1,6 @@
 type Mutation {
   startSession: StartSessionResult!
+  newSession:   StartSessionResult!
   sendMessage(sessionId: ID!, message: String!): SendMessageAck!
   submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
 }

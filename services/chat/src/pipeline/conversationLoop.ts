@@ -148,11 +148,12 @@ export async function runConversationLoop(
   const newQuestionCount = (session.questionCount ?? 0) + 1;
   const updates: Record<string, any> = { questionCount: newQuestionCount };
 
-  // Capture chief complaint from first user message if not already set
+  // Capture chief complaint + title from first user message if not already set
   if (!session.symptomSet?.chiefComplaint) {
     const firstUserMsg = session.messages.find(m => m.role === 'user');
     const complaint = firstUserMsg?.content ?? userMessage;
     updates['symptomSet.chiefComplaint'] = complaint.slice(0, 250);
+    if (!session.title) updates['title'] = complaint.slice(0, 80);
     updates['symptomSet.redFlagsPresent'] = false;
     updates['symptomSet.language'] = (session.userProfile.language ?? 'EN').toUpperCase();
     updates['symptomSet.symptoms'] = [];

@@ -32,10 +32,18 @@ export const sessionService = {
   },
 
   async getHistoryByUser(userId: string, limit = 20, offset = 0): Promise<IDiagnosisSession[]> {
-    return DiagnosisSession.find({ userId, status: { $ne: 'IN_PROGRESS' } })
-      .sort({ createdAt: -1 })
+    return DiagnosisSession.find({ userId })
+      .sort({ updatedAt: -1 })
       .skip(offset)
       .limit(limit);
+  },
+
+  async abandon(id: string): Promise<IDiagnosisSession | null> {
+    return DiagnosisSession.findByIdAndUpdate(
+      id,
+      { $set: { status: 'ABANDONED' } },
+      { new: true },
+    );
   },
 
   async update(

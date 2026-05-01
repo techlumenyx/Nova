@@ -123,6 +123,7 @@ export interface FollowUpResponse {
 export interface IDiagnosisSession extends Document {
   userId: string;
   profileId?: string;
+  title?: string;
   status: 'IN_PROGRESS' | 'COMPLETED' | 'ESCALATED' | 'ABANDONED';
   stage: number;
 
@@ -170,6 +171,7 @@ const SessionSchema = new Schema<IDiagnosisSession>(
   {
     userId:    { type: String, required: true, index: true },
     profileId: { type: String },
+    title:     { type: String },
     status: {
       type: String,
       enum: ['IN_PROGRESS', 'COMPLETED', 'ESCALATED', 'ABANDONED'],

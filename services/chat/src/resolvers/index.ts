@@ -1,4 +1,5 @@
 import { startSession } from './mutations/startSession';
+import { newSession } from './mutations/newSession';
 import { sendMessage } from './mutations/sendMessage';
 import { submitFollowUp } from './mutations/submitFollowUp';
 import { activeSession, session, sessionHistory } from './queries/session';
@@ -12,6 +13,7 @@ export const resolvers: Record<string, any> = {
   },
   Mutation: {
     startSession,
+    newSession,
     sendMessage,
     submitFollowUp,
   },

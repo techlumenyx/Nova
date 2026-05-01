@@ -85,12 +85,20 @@ type DiagnosisOutput {
 
 # ─── Session ──────────────────────────────────────────────────────────────────
 
+type SessionMessage {
+  role:      String!
+  content:   String!
+  timestamp: String!
+}
+
 type DiagnosisSession {
   id:                 ID!
   userId:             ID!
+  title:              String
   status:             SessionStatus!
   stage:              Int!
   output:             DiagnosisOutput
+  messages:           [SessionMessage!]!
   questionCount:      Int!
   redFlagTriggered:   Boolean!
   createdAt:          DateTime!
@@ -147,6 +155,7 @@ type Query {
 
 type Mutation {
   startSession:                                                       StartSessionResult!
+  newSession:                                                         StartSessionResult!
   sendMessage(sessionId: ID!, message: String!):                      SendMessageAck!
   submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
 }

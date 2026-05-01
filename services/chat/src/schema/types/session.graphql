@@ -74,12 +74,20 @@ type DiagnosisOutput {
   language: String!
 }
 
+type SessionMessage {
+  role:      String!
+  content:   String!
+  timestamp: String!
+}
+
 type DiagnosisSession {
   id: ID!
   userId: ID!
+  title: String
   status: SessionStatus!
   stage: Int!
   output: DiagnosisOutput
+  messages: [SessionMessage!]!
   questionCount: Int!
   redFlagTriggered: Boolean!
   createdAt: DateTime!

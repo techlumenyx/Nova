@@ -3,7 +3,46 @@ extend schema
 
 scalar DateTime
 
-# ─── Enums ───────────────────────────────────────────────────────────────────
+type Mutation {
+  startSession: StartSessionResult!
+  newSession:   StartSessionResult!
+  sendMessage(sessionId: ID!, message: String!): SendMessageAck!
+  submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
+}
+
+union StartSessionResult = DiagnosisSession | ProfileIncompleteError
+
+type ProfileIncompleteError {
+  message: String!
+  missingFields: [String!]!
+}
+
+type Query {
+  activeSession: DiagnosisSession
+  session(id: ID!): DiagnosisSession
+  sessionHistory(limit: Int, offset: Int): [DiagnosisSession!]!
+}
+
+type Subscription {
+  sessionUpdated(sessionId: ID!): SessionEvent!
+}
+
+type SessionEvent {
+  sessionId:      ID!
+  type:           SessionEventType!
+  message:        String
+  stage:          Int!
+  status:         SessionStatus!
+  requiresAction: ActionType!
+  output:         DiagnosisOutput
+}
+
+enum SessionEventType {
+  MESSAGE
+  STAGE_CHANGE
+  COMPLETED
+  ESCALATED
+}
 
 enum SessionStatus {
   IN_PROGRESS
@@ -40,50 +79,46 @@ enum SessionAction {
   ER_NOW
 }
 
-# ─── Output types ─────────────────────────────────────────────────────────────
-
 type ProbableCause {
-  condition:   String!
-  confidence:  Float!
+  condition: String!
+  confidence: Float!
   explanation: String!
 }
 
 type RuledOut {
   condition: String!
-  reason:    String!
+  reason: String!
 }
 
 type Remedy {
-  nameEn:        String!
-  nameHi:        String!
+  nameEn: String!
+  nameHi: String!
   preparationEn: String!
   preparationHi: String!
-  ingredients:   [String!]!
-  source:        String!
+  ingredients: [String!]!
+  source: String!
 }
 
-type LabTest {
+type LabTestRecommendation {
   testName: String!
-  slug:     String!
-  reason:   String!
-  urgency:  String!
+  slug: String!
+  reason: String!
+  urgency: String!
 }
 
 type DiagnosisOutput {
-  severity:            Severity!
-  probableCauses:      [ProbableCause!]!
-  ruledOut:            [RuledOut!]!
-  action:              SessionAction!
-  actionDetail:        String!
-  homeRemedies:        [Remedy!]!
-  labTestsRecommended: [LabTest!]!
-  watchFor:            [String!]!
-  disclaimer:          String!
-  emergencyNumber:     String
-  language:            String!
+  severity: Severity!
+  probableCauses: [ProbableCause!]!
+  ruledOut: [RuledOut!]!
+  action: SessionAction!
+  actionDetail: String!
+  homeRemedies: [Remedy!]!
+  labTestsRecommended: [LabTestRecommendation!]!
+  watchFor: [String!]!
+  disclaimer: String!
+  emergencyNumber: String
+  language: String!
 }
-
-# ─── Session ──────────────────────────────────────────────────────────────────
 
 type SessionMessage {
   role:      String!
@@ -92,76 +127,27 @@ type SessionMessage {
 }
 
 type DiagnosisSession {
-  id:                 ID!
-  userId:             ID!
-  title:              String
-  status:             SessionStatus!
-  stage:              Int!
-  output:             DiagnosisOutput
-  messages:           [SessionMessage!]!
-  questionCount:      Int!
-  redFlagTriggered:   Boolean!
-  createdAt:          DateTime!
-  updatedAt:          DateTime!
+  id: ID!
+  userId: ID!
+  title: String
+  status: SessionStatus!
+  stage: Int!
+  output: DiagnosisOutput
+  messages: [SessionMessage!]!
+  questionCount: Int!
+  redFlagTriggered: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type MessageResponse {
-  message:       String!
-  stage:         Int!
-  status:        SessionStatus!
+  message: String!
+  stage: Int!
+  status: SessionStatus!
   requiresAction: ActionType
 }
 
 type SendMessageAck {
   accepted:  Boolean!
   sessionId: ID!
-}
-
-# ─── Subscriptions ────────────────────────────────────────────────────────────
-
-enum SessionEventType {
-  MESSAGE
-  STAGE_CHANGE
-  COMPLETED
-  ESCALATED
-}
-
-type SessionEvent {
-  sessionId:      ID!
-  type:           SessionEventType!
-  message:        String
-  stage:          Int!
-  status:         SessionStatus!
-  requiresAction: ActionType!
-  output:         DiagnosisOutput
-}
-
-type ProfileIncompleteError {
-  message:       String!
-  missingFields: [String!]!
-}
-
-union StartSessionResult = DiagnosisSession | ProfileIncompleteError
-
-# ─── Queries ──────────────────────────────────────────────────────────────────
-
-type Query {
-  activeSession:                              DiagnosisSession
-  session(id: ID!):                           DiagnosisSession
-  sessionHistory(limit: Int, offset: Int):    [DiagnosisSession!]!
-}
-
-# ─── Mutations ────────────────────────────────────────────────────────────────
-
-type Mutation {
-  startSession:                                                       StartSessionResult!
-  newSession:                                                         StartSessionResult!
-  sendMessage(sessionId: ID!, message: String!):                      SendMessageAck!
-  submitFollowUp(sessionId: ID!, outcome: FollowUpOutcome!, doctorDiagnosis: String): DiagnosisSession!
-}
-
-# ─── Subscription ─────────────────────────────────────────────────────────────
-
-type Subscription {
-  sessionUpdated(sessionId: ID!): SessionEvent!
 }

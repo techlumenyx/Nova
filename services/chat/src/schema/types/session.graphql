@@ -53,7 +53,7 @@ type Remedy {
   source: String!
 }
 
-type LabTest {
+type LabTestRecommendation {
   testName: String!
   slug: String!
   reason: String!
@@ -67,7 +67,7 @@ type DiagnosisOutput {
   action: SessionAction!
   actionDetail: String!
   homeRemedies: [Remedy!]!
-  labTestsRecommended: [LabTest!]!
+  labTestsRecommended: [LabTestRecommendation!]!
   watchFor: [String!]!
   disclaimer: String!
   emergencyNumber: String

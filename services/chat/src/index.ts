@@ -78,7 +78,7 @@ async function start() {
 
   app.use(
     '/graphql',
-    expressMiddleware(server, { context: async ({ req }: { req: any }) => buildContext({ req }) }),
+    expressMiddleware(server, { context: ({ req }: { req: any }) => buildContext({ req }) }),
   );
 
   httpServer.listen(Number(PORT), '::', () => {

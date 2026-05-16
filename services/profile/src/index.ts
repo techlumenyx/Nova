@@ -5,6 +5,9 @@ config({ path: resolve(__dirname, '../../../.env') });
 import mongoose from 'mongoose';
 mongoose.set('bufferTimeoutMS', 30000);
 
+// DIAGNOSTIC: log mongoose version + resolved path
+console.log('[diag] profile mongoose v' + mongoose.version + ' @ ' + require.resolve('mongoose'));
+
 import express from 'express';
 import cors from 'cors';
 import { json } from 'body-parser';

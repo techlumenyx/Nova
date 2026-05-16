@@ -16,6 +16,8 @@ export async function connectDB(): Promise<void> {
   const url = process.env.MONGODB_URL;
   if (!url) throw new Error('MONGODB_URL is required');
 
+  console.log('[diag] shared connectDB using mongoose v' + mongoose.version + ' @ ' + require.resolve('mongoose'));
+
   if (mongoose.connection.readyState === 1) return;
 
   _url = url;

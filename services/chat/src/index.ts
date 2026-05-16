@@ -22,6 +22,10 @@ import { buildContext } from './context';
 import { logger, connectDB } from '@nova/shared';
 
 
+
+//Websocket 
+import os from 'os'
+
 const PORT = process.env.PORT || 4004;
 
 const schema = buildSubgraphSchema({ typeDefs, resolvers });
@@ -84,6 +88,19 @@ async function start() {
   httpServer.listen(Number(PORT), '::', () => {
     logger.info(`Chat service running on port ${PORT}`);
     logger.info(`WebSocket subscriptions ready at ws://localhost:${PORT}/graphql`);
+    // Get local network IP
+    const networkInterfaces = os.networkInterfaces();
+    const internalIp = Object.values(networkInterfaces)
+      .flat()
+      .find((details) => details?.family === 'IPv4' && !details.internal)?.address;
+
+    const host = internalIp || 'localhost';
+    const httpUrl = `http://${host}:${PORT}/graphql`;
+    const wsUrl = `ws://${host}:${PORT}/graphql`;
+
+    logger.info(`🚀 Chat service ready at ${httpUrl}`);
+    logger.info(`🚀 Subscriptions ready at ${wsUrl}`);
+    logger.info(`Health check: http://${host}:${PORT}/health`);
   });
 }
 

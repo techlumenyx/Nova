@@ -37,7 +37,17 @@ export const resolvers = {
   Mutation: {
     setupProfile: async (_: unknown, { input }: { input: any }, ctx: Context) => {
       if (!ctx.userId) throw new AuthenticationError('Not authenticated');
+      // DIAGNOSTIC: log connection state at request time
+      const mongoose = (await import('mongoose')).default;
+      console.log('[diag] setupProfile START — readyState=' + mongoose.connection.readyState + ' (1=connected, 2=connecting, 3=disconnecting, 0=disconnected)');
+      try {
+        const pong = await mongoose.connection.db?.admin().ping();
+        console.log('[diag] mongo ping:', JSON.stringify(pong));
+      } catch (e: any) {
+        console.log('[diag] mongo ping FAILED:', e?.message);
+      }
       const p = await profileService.upsert(ctx.userId, input);
+      console.log('[diag] setupProfile DONE');
       return toGql(p);
     },
 

@@ -7,6 +7,7 @@ RUN apt-get update && \
 # Install Rover CLI
 RUN curl -sSL https://rover.apollo.dev/nix/latest | APOLLO_NO_UPDATE_NOTIFIER=1 sh
 ENV PATH="/root/.rover/bin:$PATH"
+ENV APOLLO_ELV2_LICENSE=accept
 
 # Install Apollo Router into /usr/local/bin
 ARG ROUTER_VERSION=1.57.1

@@ -6,14 +6,16 @@ echo "[gateway] Starting entrypoint..."
 LISTEN_PORT=${PORT:-4000}
 echo "[gateway] Public port: ${LISTEN_PORT} (nginx) → 3000 (router graphql), 8088 (router health)"
 
-if [ ! -f /config/supergraph.graphql ]; then
-  echo "[gateway] supergraph.graphql not found — composing from subgraphs..."
-  rover supergraph compose \
-    --config /config/supergraph.yaml \
-    --output /config/supergraph.graphql
-  echo "[gateway] Supergraph composed."
+echo "[gateway] Composing supergraph from live subgraphs..."
+if rover supergraph compose \
+     --config /config/supergraph.yaml \
+     --output /config/supergraph.graphql; then
+  echo "[gateway] Supergraph composed successfully."
+elif [ -f /config/supergraph.graphql ]; then
+  echo "[gateway] Live composition failed — falling back to pre-built supergraph.graphql."
 else
-  echo "[gateway] Using pre-built supergraph.graphql — skipping composition."
+  echo "[gateway] Live composition failed and no pre-built supergraph available — aborting."
+  exit 1
 fi
 
 # Generate nginx config with the dynamic PORT
